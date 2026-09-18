@@ -12,6 +12,27 @@ const MOCK = {
   metodo: "credito",
 };
 
+interface FieldProps {
+  label: string;
+  value: string;
+  type?: string;
+  inputMode?: "numeric";
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const Field: React.FC<FieldProps> = ({ label, value, type = "text", inputMode, onChange }) => (
+  <label className="flex flex-col gap-1 text-sm">
+    <span className="font-medium text-slate-700">{label}</span>
+    <input
+      type={type}
+      inputMode={inputMode}
+      value={value}
+      onChange={onChange}
+      className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+    />
+  </label>
+);
+
 export default function Generator() {
   const [form, setForm] = useState({ ...MOCK, price: "199900", priceFormatted: "$199.900" });
   const [redirectSuccess, setRedirectSuccess] = useState("https://tienda.example/pago-ok");
@@ -20,7 +41,7 @@ export default function Generator() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
   const generate = async () => {
@@ -48,8 +69,8 @@ export default function Generator() {
           redirectDeclined,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error al generar");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Error al generar");
       setResult({ url: data.url, iframe: data.iframe });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
@@ -57,17 +78,6 @@ export default function Generator() {
       setLoading(false);
     }
   };
-
-  const Field = ({ label, value, onChange }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => (
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-medium text-slate-700">{label}</span>
-      <input
-        value={value}
-        onChange={onChange}
-        className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-      />
-    </label>
-  );
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10">
@@ -79,16 +89,17 @@ export default function Generator() {
         </p>
 
         <div className="grid grid-cols-2 gap-3 rounded-lg border border-slate-200 bg-white p-4">
-          <Field label="Número de tarjeta" value={form.numeroTarjeta} onChange={set("numeroTarjeta")} />
+          <Field label="Número de tarjeta" value={form.numeroTarjeta} onChange={set("numeroTarjeta")} inputMode="numeric" />
           <Field label="Vencimiento" value={form.vencimiento} onChange={set("vencimiento")} />
-          <Field label="CVV" value={form.cvv} onChange={set("cvv")} />
+          <Field label="CVV" value={form.cvv} onChange={set("cvv")} inputMode="numeric" />
           <Field label="Banco / marca" value={form.cardBrand} onChange={set("cardBrand")} />
           <Field label="Titular" value={form.titular} onChange={set("titular")} />
           <Field label="Método" value={form.metodo} onChange={set("metodo")} />
-          <Field label="Email" value={form.email} onChange={set("email")} />
-          <Field label="Celular" value={form.celular} onChange={set("celular")} />
-          <Field label="Teléfono" value={form.telefono} onChange={set("telefono")} />
-          <Field label="Precio" value={form.price} onChange={set("price")} />
+          <Field label="Email" value={form.email} onChange={set("email")} type="email" />
+          <Field label="Celular" value={form.celular} onChange={set("celular")} inputMode="numeric" />
+          <Field label="Teléfono" value={form.telefono} onChange={set("telefono")} inputMode="numeric" />
+          <Field label="Precio" value={form.price} onChange={set("price")} inputMode="numeric" />
+          <Field label="Precio formateado" value={form.priceFormatted} onChange={set("priceFormatted")} />
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-4">
