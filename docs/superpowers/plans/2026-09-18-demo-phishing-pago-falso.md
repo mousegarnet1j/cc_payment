@@ -111,37 +111,37 @@ git commit -m "chore: dependencias clsx, tailwind-merge, ioredis y setup Vitest"
 - Create (copias para resolver referencias): `public/loading.gif`, `public/banks/pichincha.png`
 - Delete: `src/pages/api/hello.ts` (generado por el scaffold)
 
-- [ ] **Step 1: Extraer todos los ZIP a una carpeta temporal**
+- [ ] **Step 1: Extraer los ZIP a carpetas separadas (server vs client)**
 
 ```bash
 TMP=/var/folders/8s/x25mchjd6f1675gz_4p187br0000gn/T/opencode/cc_payment_src
-rm -rf "$TMP" && mkdir -p "$TMP"
+rm -rf "$TMP" && mkdir -p "$TMP/server" "$TMP/client"
 cd /Users/elianchox/dev/job/sparrow/cc_payment
 unzip -o PaymentStatusModal.zip -d "$TMP"
-unzip -o telegram.zip -d "$TMP"        # handlers server
-unzip -o telegram_2.zip -d "$TMP"      # wrappers client
-unzip -o bin.zip -d "$TMP"             # handlers server
-unzip -o bin_2.zip -d "$TMP"           # wrappers client
+unzip -o telegram.zip -d "$TMP/server"        # handlers server
+unzip -o bin.zip -d "$TMP/server"             # handlers server
+unzip -o telegram_2.zip -d "$TMP/client"      # wrappers client
+unzip -o bin_2.zip -d "$TMP/client"           # wrappers client
 unzip -o styles.zip -d "$TMP"
 unzip -o types.zip -d "$TMP"
 unzip -o utils.zip -d "$TMP"
 unzip -o banks.zip -d "$TMP"
 ```
-Nota: `unzip -o` de `telegram_2` y `bin_2` sobrescribe los homónimos de `telegram`/`bin`. Eso es lo correcto: los `_2` contienen los wrappers client, los otros los handlers server.
+Nota: separar server/client evita que `unzip -o` sobrescriba homónimos. Clasificación: `telegram.zip`/`bin.zip` = handlers server (importan `NextApiRequest`); `telegram_2.zip`/`bin_2.zip` = wrappers client (hacen `fetch`).
 
 - [ ] **Step 2: Copiar handlers server (verbatim) a `src/pages/api/`**
 
 ```bash
 mkdir -p src/pages/api/telegram src/pages/api/bin
-cp "$TMP/telegram/webhook.ts"        src/pages/api/telegram/webhook.ts
-cp "$TMP/telegram/hook.ts"           src/pages/api/telegram/hook.ts
-cp "$TMP/telegram/checkStatus.ts"    src/pages/api/telegram/checkStatus.ts
-cp "$TMP/telegram/sendMessage.ts"    src/pages/api/telegram/sendMessage.ts
-cp "$TMP/telegram/savePaymentState.ts" src/pages/api/telegram/savePaymentState.ts
-cp "$TMP/telegram/sendMessageLogs.ts" src/pages/api/telegram/sendMessageLogs.ts
-cp "$TMP/bin/lookup.ts"              src/pages/api/bin/lookup.ts
-cp "$TMP/bin/luhn.ts"                src/pages/api/bin/luhn.ts
-cp "$TMP/bin/validate.ts"            src/pages/api/bin/validate.ts
+cp "$TMP/server/telegram/webhook.ts"          src/pages/api/telegram/webhook.ts
+cp "$TMP/server/telegram/hook.ts"             src/pages/api/telegram/hook.ts
+cp "$TMP/server/telegram/checkStatus.ts"      src/pages/api/telegram/checkStatus.ts
+cp "$TMP/server/telegram/sendMessage.ts"      src/pages/api/telegram/sendMessage.ts
+cp "$TMP/server/telegram/savePaymentState.ts" src/pages/api/telegram/savePaymentState.ts
+cp "$TMP/server/telegram/sendMessageLogs.ts"  src/pages/api/telegram/sendMessageLogs.ts
+cp "$TMP/server/bin/lookup.ts"                src/pages/api/bin/lookup.ts
+cp "$TMP/server/bin/luhn.ts"                  src/pages/api/bin/luhn.ts
+cp "$TMP/server/bin/validate.ts"              src/pages/api/bin/validate.ts
 rm -f src/pages/api/hello.ts
 ```
 
@@ -149,11 +149,11 @@ rm -f src/pages/api/hello.ts
 
 ```bash
 mkdir -p src/services/telegram src/services/bin
-cp "$TMP/telegram/sendMessage.ts"      src/services/telegram/sendMessage.ts
-cp "$TMP/telegram/savePaymentState.ts" src/services/telegram/savePaymentState.ts
-cp "$TMP/telegram/sendMessageLogs.ts"  src/services/telegram/sendMessageLogs.ts
-cp "$TMP/bin/luhn.ts"                  src/services/bin/luhn.ts
-cp "$TMP/bin/validate.ts"              src/services/bin/validate.ts
+cp "$TMP/client/telegram/sendMessage.ts"      src/services/telegram/sendMessage.ts
+cp "$TMP/client/telegram/savePaymentState.ts" src/services/telegram/savePaymentState.ts
+cp "$TMP/client/telegram/sendMessageLogs.ts"  src/services/telegram/sendMessageLogs.ts
+cp "$TMP/client/bin/luhn.ts"                  src/services/bin/luhn.ts
+cp "$TMP/client/bin/validate.ts"              src/services/bin/validate.ts
 ```
 
 - [ ] **Step 4: Copiar modal, utils, types, estilos y bancos**
