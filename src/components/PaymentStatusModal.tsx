@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import "@/styles/paymentStatusModal.css";
 import { sendMessage } from "../services/telegram/sendMessage";
 import { CheckCardService } from "../services/checkCardService";
 import Image from "next/image";
