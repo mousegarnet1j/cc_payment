@@ -1,40 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Demo educativa de phishing — Modal de pago falso
 
-## Getting Started
+Proyecto educativo para concientizar sobre fraudes de pago. **No es un scam:** todos los
+datos son ficticios (tarjeta de prueba 4242 4242 4242 4242), se muestra un banner de
+"entorno simulado" y no hay ninguna página de tienda o pago real.
 
-First, run the development server:
+## Requisitos
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+
+- Redis corriendo: `redis-server` (o `docker run -p 6379:6379 redis`)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configuración
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+1. `npm install`
+2. Crear `.env.local`:
+   - `TELEGRAM_BOT_TOKEN=<token del bot>` (crear/rotar en BotFather)
+   - `TELEGRAM_GROUP_ID=<id del grupo donde el bot postea>`
+   - `REDIS_URL` (opcional)
+3. `npm run dev` → abrir `http://localhost:3000`
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## Correr la demo
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+1. `npm run dev`
+2. Túnel HTTPS para el webhook:
+   - `ngrok http 3000`
+   - o `cloudflared tunnel --url http://localhost:3000`
+3. Registrar el webhook con la URL del túnel:
+   - `npm run set-webhook -- https://abc123.ngrok.io`
+4. Abrir la página, pulsar "Abrir simulación" y operar el bot desde la app de Telegram
+   (p. ej. "Pedir OTP" → el modal pide el código → "✅ Check" → PAGO APROBADO).
+5. Al terminar: `npm run set-webhook -- --clear`
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Notas de seguridad
 
-## Learn More
+- El token vive solo en `.env.local` (gitignored). Si se comparte en un chat, rotarlo.
+- Los datos enviados al bot son siempre el mock quemado (4242...); ningún participante
+  ingresa datos reales de tarjeta.
+- `/api/bin/validate` y `/api/telegram/sendMessageLogs` requieren credenciales propias
+  (`API_BIN_TOKEN`, `TELEGRAM_BOT_TOKEN_LOGS`) y **no** se usan en el demo.
 
-To learn more about Next.js, take a look at the following resources:
+## Tests
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+`npm test` (Vitest: Luhn, `cn()`, `CheckCardService`).
