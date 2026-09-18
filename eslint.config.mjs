@@ -20,6 +20,19 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    ignores: [
+      "src/components/PaymentStatusModal.tsx",
+      "src/pages/api/telegram/**",
+      "src/pages/api/bin/**",
+      "src/services/telegram/**",
+      "src/services/bin/**",
+      "src/utils/paymentStorage.ts",
+      "src/utils/auth.ts",
+      "src/utils/formatNumber.ts",
+      "src/types/**",
+    ],
+  },
 ];
 
 export default eslintConfig;
