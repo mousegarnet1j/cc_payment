@@ -200,35 +200,46 @@ git commit -m "feat: integrar material original verbatim (handlers, wrappers, mo
 **Files:**
 - Create: `src/lib/redis.ts`
 
-- [ ] **Step 1: Crear el cliente ioredis**
+- [ ] **Step 1: Instalar node-redis (reemplaza ioredis)**
 
+```bash
+npm uninstall ioredis
+npm install redis
+```
+Nota: `paymentStorage.ts` verbatim usa `redis.set(key, val, { EX })` (forma objeto). `ioredis@6` no la soporta; **node-redis v4** (paquete `redis`) sí — es el cliente para el que el código original fue escrito. No se modifica `paymentStorage.ts`.
+
+- [ ] **Step 2: Crear el cliente node-redis**
+
+`src/lib/redis.ts`:
 ```ts
-import Redis from "ioredis";
-
-const globalForRedis = globalThis as unknown as { __redis?: Redis };
+import { createClient } from "redis";
 
 const url = process.env.REDIS_URL ?? "redis://127.0.0.1:6379";
 
-export const redis = globalForRedis.__redis ?? new Redis(url);
+const globalForRedis = globalThis as unknown as { __redis?: ReturnType<typeof createClient> };
+
+export const redis = globalForRedis.__redis ?? createClient({ url });
 
 if (process.env.NODE_ENV !== "production") globalForRedis.__redis = redis;
 
+redis.connect().catch((err) => console.error("[redis] connection error:", err));
+
 export default redis;
 ```
-Expected: default export compatible con el `import redis from "@/lib/redis"` de `utils/paymentStorage.ts` (`get`/`set` con `{ EX }`/`del`).
+Expected: default export compatible con `import redis from "@/lib/redis"` de `src/utils/paymentStorage.ts` (`set(key, val, { EX })`, `get`, `del`). node-redis encola comandos hasta que la conexión esté lista.
 
-- [ ] **Step 2: Verificar import y compilación**
+- [ ] **Step 3: Verificar compilación**
 
 ```bash
 npx tsc --noEmit
 ```
-Expected: sin errores.
+Expected: el error `EX` de `paymentStorage.ts:26` desaparece. Solo puede quedar el error de `../services/checkCardService` (Task 7). NO arreglarlo.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add src/lib/redis.ts
-git commit -m "feat: cliente ioredis para el estado de sesión"
+git add src/lib/redis.ts package.json package-lock.json
+git commit -m "feat: cliente redis (node-redis) para el estado de sesión"
 ```
 
 ---

