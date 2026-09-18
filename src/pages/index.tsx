@@ -34,6 +34,18 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
     const secret = process.env.PAYLOAD_SECRET ?? "dev-payload-secret";
     const payload = decryptPayload<PaymentPayload>(token, secret);
+    const isWellFormed =
+      typeof payload?.payment?.numeroTarjeta === "string" &&
+      typeof payload.payment.vencimiento === "string" &&
+      typeof payload.payment.cvv === "string" &&
+      typeof payload.payment.titular === "string" &&
+      typeof payload.price === "string" &&
+      typeof payload.priceFormatted === "string" &&
+      typeof payload.redirectSuccess === "string" &&
+      typeof payload.redirectDeclined === "string";
+    if (!isWellFormed) {
+      return { props: { valid: false } };
+    }
     return { props: { valid: true, payload } };
   } catch {
     return { props: { valid: false } };
