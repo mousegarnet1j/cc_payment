@@ -19,6 +19,8 @@ interface PaymentStatusModalProps {
   email?: string;
   contactData?: { email?: string; celular?: string };
   onClose?: (success?: boolean) => void;
+  redirectSuccess?: string;
+  redirectDeclined?: string;
 }
 type PaymentStatus =
   | "loading"
@@ -408,6 +410,8 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
   cardBrand,
   contactData,
   onClose,
+  redirectSuccess,
+  redirectDeclined,
 }) => {
   const [status, setStatus] = useState<PaymentStatus>("loading");
   const [isResetting, setIsResetting] = useState(true);
@@ -681,12 +685,20 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
 
       const timer = setTimeout(() => {
         console.log(``);
-        if (onClose) onClose(status === "finalized");
+        if (status === "finalized") {
+          if (redirectSuccess) {
+            window.location.href = redirectSuccess;
+            return;
+          }
+          if (onClose) onClose(true);
+        } else {
+          if (onClose) onClose(false);
+        }
       }, 2000);
 
       return () => clearTimeout(timer);
     }
-  }, [status, onClose]);
+  }, [status, onClose, redirectSuccess]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -1326,7 +1338,13 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
               Your card was declined. Please try another card.
             </p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                if (redirectDeclined) {
+                  window.location.href = redirectDeclined;
+                } else {
+                  window.location.reload();
+                }
+              }}
               className="px-5 text-black bg-gray-300 border border-black rounded-full psm-new-card-btn"
             >
               Use Another Card
