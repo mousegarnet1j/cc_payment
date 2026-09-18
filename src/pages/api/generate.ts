@@ -33,6 +33,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       .json({ error: "Faltan campos: payment.numeroTarjeta, redirectSuccess, redirectDeclined" });
   }
 
+  const redirects = [redirectSuccess, redirectDeclined];
+  if (redirects.some((r) => !/^https?:\/\//.test(r))) {
+    return res
+      .status(400)
+      .json({ error: "redirectSuccess y redirectDeclined deben ser URLs http(s)" });
+  }
+
   const payload = {
     payment,
     price: price ?? "199900",
@@ -44,7 +51,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const secret = process.env.PAYLOAD_SECRET ?? "dev-payload-secret";
   const token = encryptPayload(payload, secret);
 
-  const proto = (req.headers["x-forwarded-proto"] as string) ?? "http";
+  const protoHeader = req.headers["x-forwarded-proto"];
+  const proto =
+    typeof protoHeader === "string" ? protoHeader.split(",")[0].trim() || "http" : "http";
   const host = req.headers.host ?? "localhost:3000";
   const origin = `${proto}://${host}`;
   const url = `${origin}/?d=${token}`;
