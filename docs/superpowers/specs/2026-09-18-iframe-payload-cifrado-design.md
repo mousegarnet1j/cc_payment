@@ -1,7 +1,7 @@
 # Diseño: Modal de pago en iframe con payload cifrado en la URL
 
 Fecha: 2026-09-18
-Estado: Propuesto (rev 2)
+Estado: Aprobado (rev 3)
 
 ## Contexto y objetivo
 
@@ -32,8 +32,12 @@ intacto.
 - **Clave:** derivada con SHA-256 de `PAYLOAD_SECRET` (variable de entorno, solo en `.env.local`).
   Fallback de desarrollo: `"dev-payload-secret"` (se usa exclusivamente server-side, nunca va al bundle).
 - **Formato del token (base64url):** `iv(12) ‖ authTag(16) ‖ ciphertext`.
-- **Descifrado en SSR** (`getServerSideProps` de `index.tsx`): los datos en claro **nunca** aparecen
-  en el bundle JS ni en el HTML; el cliente solo recibe props ya descifradas.
+- **Descifrado en SSR** (`getServerSideProps` de `index.tsx`): los datos en claro **no** aparecen en el
+  bundle JS **ni en la URL**; el cliente recibe props ya descifradas. Nota: al ser props de
+  `getServerSideProps`, el plaintext sí viaja serializado en `__NEXT_DATA__` del HTML servido — es
+  dato de sesión (ruta dinámica, nunca cacheada estáticamente) que el navegador debe recibir de todos
+  modos para renderizar el modal. La garantía clave del demo es que el mock **no** se filtra en la URL
+  ni en el bundle JS inspeccionable.
 - GCM garantiza integridad: un token manipulado o corrupto **falla** el descifrado → página de URL inválida.
 
 ## Estructura del proyecto
@@ -234,8 +238,9 @@ es aceptable; el `generator.tsx` define su propio fondo en su contenedor.
    - Abrir `/?d=<token>` directamente → el modal se auto-abre sobre negro 50%.
    - Con Redis y webhook activos: flujo completo → "✅ Check" → redirige a `redirectSuccess`.
    - El botón "Use Another Card" (estado `new_card`) redirige a `redirectDeclined`.
-4. Verificar que los datos en claro no aparecen ni en la URL ni en el bundle JS (buscar `4242424242424242`
-   en el HTML servido y en los chunks de `.next`).
+4. Verificar que los datos en claro no aparecen **en la URL ni en el bundle JS de la página del
+   iframe** (buscar `4242424242424242` en los chunks de `.next/static` que carga `/`; el chunk del
+   generador los contiene por diseño, al ser la herramienta del presentador).
 
 ## Fuera de alcance
 
