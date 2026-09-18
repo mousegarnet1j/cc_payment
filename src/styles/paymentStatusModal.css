@@ -1,0 +1,312 @@
+/* ── PaymentStatusModal — overrides globales ── */
+
+.psm-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(31, 41, 55, 0.5) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 2147483647 !important;
+  min-width: unset !important;
+  transform: none !important;
+  overflow: visible !important;
+  perspective: none !important;
+  contain: none !important;
+}
+
+/* Caja del modal — compacta como imagen 1 */
+.psm-box {
+  background-color: #ffffff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+  width: 480px !important;
+  max-width: 95vw !important;
+  height: auto !important;
+  min-height: 420px !important;
+  padding: 20px 24px 32px !important;
+  position: relative !important;
+  overflow: visible !important;
+  min-width: unset !important;
+  transform: none !important;
+  font-family: Arial, sans-serif !important;
+  text-align: left !important;
+  color: #111111 !important;
+}
+
+/* Logo del banco + Verified by VISA — alineados al margen del texto */
+.psm-box .flex.justify-between {
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+/* Next.js <Image> genera un <span> wrapper — forzamos que el primero
+   no tenga margen izquierdo y el último quede pegado a la derecha */
+.psm-box .flex.justify-between > span {
+  display: contents !important;
+}
+
+.psm-box .flex.justify-between img {
+  display: block !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Textos alineados a la izquierda */
+.psm-box p {
+  text-align: left !important;
+  margin: 0 !important;
+  color: #111111 !important;
+}
+
+/* Párrafo principal (text-xs en Tailwind v4 = 12px = lo correcto según imagen ref) */
+.psm-box p.text-\[10px\],
+
+.psm-box p.mt-5.text-xs,
+.psm-box p[class*="text-xs"] {
+  --text-xs: 12px !important;
+  --text-xs--line-height: 1.6 !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+}
+
+.psm-box p.text-\[10px\] {
+  font-size: 10px !important;
+}
+
+.psm-box p.mt-5 { margin-top: 12px !important; }
+.psm-box p.mt-3 { margin-top: 8px !important; }
+
+/* Loading gif — centrado y más grande */
+.psm-loading {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 48px 0 !important;
+  position: static !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+.psm-loading img,
+.psm-loading span img {
+  width: 110px !important;
+  height: 110px !important;
+}
+
+/* Inputs con borde visible */
+.psm-box input.inputnormal {
+  border: 1px solid #aaa !important;
+  border-radius: 3px !important;
+  padding: 3px 6px !important;
+  outline: none !important;
+  width: 130px !important;
+  font-size: 13px !important;
+  background: #fff !important;
+  color: #111 !important;
+}
+
+.psm-box input.inputnormal:focus {
+  border-color: #304cb2 !important;
+  box-shadow: 0 0 0 2px rgba(48, 76, 178, 0.15) !important;
+}
+
+/* Inputs en rojo cuando hay error */
+.psm-box.psm-error input.inputnormal {
+  border-color: #d5152e !important;
+  background-color: #ffffff !important;
+}
+
+.psm-box.psm-error input.inputnormal:focus {
+  border-color: #d5152e !important;
+  box-shadow: 0 0 0 2px rgba(213, 21, 46, 0.15) !important;
+}
+
+/* ── Davivienda Cardinal-style form centering ── */
+.psm-box .visa-styling {
+  text-align: center !important;
+}
+
+/* ── Botón Autorizar — replica imagen de referencia ── */
+.psm-box button[class*="rounded-full"],
+.psm-box button[class*="bg-gray"] {
+  background-color: #f0f0f0 !important;
+  color: #111111 !important;
+  border: 1px solid #111111 !important;
+  border-radius: 4px !important;
+  padding: 6px 28px !important;
+  font-size: 13px !important;
+  font-family: Arial, sans-serif !important;
+  font-weight: normal !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+.psm-box button[class*="rounded-full"]:hover,
+.psm-box button[class*="bg-gray"]:hover {
+  background-color: #e0e0e0 !important;
+}
+
+/* Wrapper del botón Autorizar — siempre centrado */
+.psm-box .flex.w-full.justify-center:has(button) {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin-top: 20px !important;
+}
+
+/* ── Mensaje de error bajo la tabla — alineado a la izquierda con el resto del texto ── */
+.psm-box .flex.w-full.justify-center:has(p.text-red-600) {
+  justify-content: flex-start !important;
+  margin-top: 6px !important;
+  padding-left: 0 !important;
+}
+
+.psm-box p.text-red-600 {
+  color: #d5152e !important;
+  font-size: 11px !important;
+  text-align: left !important;
+  margin-top: 4px !important;
+}
+
+.psm-box p.psm-email-context {
+  color: #111111 !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+  text-align: left !important;
+  margin: 8px 0 0 !important;
+  max-width: none !important;
+}
+
+.psm-box .psm-identity-modal {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+/* El diseño del modal de identidad usa Tailwind; neutralizamos las reglas
+   globales de .psm-box sobre los <p> internos para que apliquen las clases. */
+.psm-box .psm-identity-modal p {
+  text-align: center !important;
+  color: #374151 !important;
+  margin: 0 !important;
+}
+
+.psm-box .psm-identity-modal p.text-start {
+  text-align: start !important;
+}
+
+.psm-box .psm-identity-modal p.text-red-700 {
+  color: #b91c1c !important;
+}
+
+/* ── Modal de identidad "antiguo" (bancos que no son Bancolombia) ── */
+.psm-box .psm-identity-modal .psm-identity-title {
+  text-align: center !important;
+  margin: 0 0 18px !important;
+  width: 100% !important;
+}
+
+.psm-box .psm-identity-modal p.psm-identity-text {
+  color: #555555 !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  text-align: center !important;
+  margin: 0 auto 14px !important;
+  max-width: 280px !important;
+}
+
+.psm-box .psm-identity-modal p.psm-identity-text-last {
+  margin-bottom: 28px !important;
+}
+
+/* Botón "Reintentar pago" — anular el estilo gris global del botón
+   para que aplique exactamente el diseño amarillo de referencia */
+.psm-box .psm-identity-modal button[class*="rounded-full"] {
+  background-color: #fdda24 !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  padding: 0.625rem 2.25rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  margin: 0.25rem auto 0 !important;
+  display: block !important;
+  width: auto !important;
+}
+
+.psm-box .psm-identity-modal button[class*="rounded-full"]:hover {
+  background-color: #facc15 !important;
+}
+
+.psm-box .psm-identity-modal button[class*="rounded-full"]:active {
+  background-color: #eab308 !important;
+}
+
+/* ── Tarjeta Rechazada (case new_card) — replica imagen 1 ── */
+.psm-box .flex.flex-col.items-center.py-8 {
+  padding-top: 32px !important;
+  padding-bottom: 32px !important;
+  align-items: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+/* Ocultar el emoji de la tarjeta rechazada */
+.psm-box .flex.flex-col.items-center.py-8 .text-6xl {
+  display: none !important;
+}
+
+/* Título "Tarjeta Rechazada" */
+.psm-box .flex.flex-col.items-center.py-8 h3 {
+  font-size: 22px !important;
+  font-weight: bold !important;
+  color: #111111 !important;
+  margin-bottom: 10px !important;
+  text-align: center !important;
+}
+
+/* Subtexto */
+.psm-box .flex.flex-col.items-center.py-8 > p {
+  font-size: 13px !important;
+  color: #555555 !important;
+  text-align: center !important;
+  margin-bottom: 20px !important;
+}
+
+/* Botón "Usar Otra Tarjeta" — centrado y mismo estilo que Autorizar */
+.psm-box .flex.flex-col.items-center.py-8 button,
+.psm-box button.psm-new-card-btn {
+  background-color: #f0f0f0 !important;
+  color: #111111 !important;
+  border: 1px solid #111111 !important;
+  border-radius: 4px !important;
+  padding: 6px 28px !important;
+  font-size: 13px !important;
+  font-weight: normal !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+.psm-box .flex.flex-col.items-center.py-8 button:hover,
+.psm-box button.psm-new-card-btn:hover {
+  background-color: #e0e0e0 !important;
+}
