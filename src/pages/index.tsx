@@ -1,115 +1,79 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { useState } from "react";
+import PaymentStatusModal from "@/components/PaymentStatusModal";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const MOCK_PAYMENT = {
+  numeroTarjeta: "4242424242424242",
+  vencimiento: "12/28",
+  cvv: "123",
+  titular: "MARIA DEMO",
+  email: "maria.demo@ejemplo.com",
+  celular: "3001234567",
+  telefono: "3001234567",
+  cardBrand: "Visa",
+  metodo: "credito",
+};
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const PRICE = "199900";
+const PRICE_FORMATTED = "$199.900";
 
 export default function Home() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [sessionId, setSessionId] = useState("");
+
+  const openDemo = () => {
+    const id = `demo-${Date.now()}`;
+    localStorage.setItem("checkout_payment", JSON.stringify(MOCK_PAYMENT));
+    setSessionId(id);
+    setIsOpen(true);
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
+    <main className="min-h-screen bg-slate-50">
+      <div className="sticky top-0 z-50 w-full bg-red-600 px-4 py-3 text-center text-sm font-bold text-white">
+        ⚠ ENTORNO SIMULADO — No ingrese datos reales. Demo educativa de ciberseguridad.
+      </div>
+
+      <section className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-16 text-center">
+        <h1 className="text-3xl font-bold text-slate-900">
+          Así funciona un ataque de pago falso
+        </h1>
+        <p className="text-slate-600">
+          Este demo muestra cómo un atacante engaña a una persona haciéndole creer que está
+          pagando, mientras en realidad captura sus datos por Telegram. Todos los datos son
+          ficticios (tarjeta de prueba 4242 4242 4242 4242).
+        </p>
+
+        <button
+          onClick={openDemo}
+          className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
+        >
+          Abrir simulación
+        </button>
+
+        <ol className="text-left text-sm text-slate-600">
+          <li>1. Pulsa &quot;Abrir simulación&quot; para abrir el modal de pago.</li>
+          <li>2. Abre Telegram: verás el mensaje con los datos de prueba del cliente.</li>
+          <li>3. Pulsa &quot;Pedir OTP&quot; en el bot para que el modal pida el código.</li>
+          <li>4. Escribe un OTP de prueba (p. ej. 123456) y pulsa &quot;✅ Check&quot;.</li>
         </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      <PaymentStatusModal
+        sessionId={sessionId}
+        isOpen={isOpen}
+        price={PRICE}
+        priceFormatted={PRICE_FORMATTED}
+        last4="4242"
+        card="4242 4242 4242 4242"
+        cardT="Crédito"
+        vencimiento="12/28"
+        cvv="123"
+        titular="MARIA DEMO"
+        cardBrand="Visa"
+        email="maria.demo@ejemplo.com"
+        contactData={{ email: "maria.demo@ejemplo.com", celular: "3001234567" }}
+        onClose={() => setIsOpen(false)}
+      />
+    </main>
   );
 }
