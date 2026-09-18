@@ -118,6 +118,8 @@ Estados soportados (del material original): `loading`, `otp`, `error_otp`, `user
 | `styles/paymentStatusModal.css` | `src/styles/paymentStatusModal.css` | Verbatim |
 | `banks/*` (23) | `public/banks/` | Verbatim |
 
+**Única excepción al verbatim (forzada por Next.js):** Pages Router prohíbe importar CSS global desde un componente. El modal verbatim traía `import "@/styles/paymentStatusModal.css"` en su línea 2; se eliminó esa línea y el CSS se importa en `src/pages/_app.tsx`. Rendering idéntico. Los archivos legacy además quedan ignorados en ESLint (`eslint.config.mjs`) porque usan `any` (el build de Next corre ESLint).
+
 **Piezas faltantes que se reconstruyen (fieles al contrato existente):**
 - `src/lib/redis.ts` → default export de un cliente node-redis (`createClient({ url })` con `url = REDIS_URL ?? 'redis://127.0.0.1:6379'`). API `get/set` (con `{EX}`)/`del`, que es la que `paymentStorage.ts` ya usa.
 - `src/services/checkCardService.ts` → `CheckCardService.validateCard(card: string)`: valida con Luhn y devuelve `{ success, issuer, level, brand, type, country, infocc }` (el modal lee esas claves).
