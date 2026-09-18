@@ -123,12 +123,8 @@ Estados soportados (del material original): `loading`, `otp`, `error_otp`, `user
 **Piezas faltantes que se reconstruyen (fieles al contrato existente):**
 - `src/lib/redis.ts` → default export de un cliente node-redis (`createClient({ url })` con `url = REDIS_URL ?? 'redis://127.0.0.1:6379'`). API `get/set` (con `{EX}`)/`del`, que es la que `paymentStorage.ts` ya usa.
 - `src/services/checkCardService.ts` → `CheckCardService.validateCard(card: string)`: valida con Luhn y devuelve `{ success, issuer, level, brand, type, country, infocc }` (el modal lee esas claves).
-- Handlers server de los wrappers que hacen `fetch` a `/api/...`:
-  - `POST /api/telegram/sendMessage` → llama a `api.telegram.org/bot<TOKEN>/sendMessage` con `chat_id` (de `TELEGRAM_CHAT_ID`/env), `text` y `reply_markup` si viene `keyboard`. Devuelve `{ result }`.
-  - `POST /api/telegram/savePaymentState` → persiste `{sessionId, status}` en Redis (`EX` 30 min). Devuelve `{ result }`.
-  - `POST /api/telegram/sendMessageLogs` → publica el log en el chat. Devuelve `{ result }`.
-  - `GET /api/bin/luhn` → valida Luhn localmente (`{ message }`).
-  - `POST /api/bin/validate` → validación simulada (`{ result }`).
+
+Nota: todos los handlers server (`sendMessage`, `savePaymentState`, `sendMessageLogs`, `checkStatus`, `hook`, `webhook`, `bin/lookup`, `bin/luhn`, `bin/validate`) resultaron estar **verbatim en los ZIP** — se copian tal cual, no se reconstruyen.
 
 ## Componentes nuevos
 
@@ -139,15 +135,15 @@ Estados soportados (del material original): `loading`, `otp`, `error_otp`, `user
 
 | Ruta | Origen | Comportamiento |
 |---|---|---|
-| `POST /api/telegram/sendMessage` | Reconstruida | `sendMessage` de Telegram con `chat_id` de env; soporta `reply_markup`. |
-| `POST /api/telegram/savePaymentState` | Reconstruida | Persiste `{sessionId, status}` en Redis (`EX` 30 min). |
+| `POST /api/telegram/sendMessage` | Verbatim | `sendMessage` de Telegram con `TELEGRAM_GROUP_ID` de env; soporta `reply_markup`. |
+| `POST /api/telegram/savePaymentState` | Verbatim | Persiste `{sessionId, status}` en Redis vía `paymentStorage` (`{ EX }`). Devuelve el status como JSON (el wrapper destructurea `result`, que queda `undefined` — el modal ignora el retorno). |
 | `GET /api/telegram/checkStatus` | Verbatim (`checkStatus.ts`) | Lee estado de Redis (devuelve `loading` si no existe). |
-| `POST /api/telegram/sendMessageLogs` | Reconstruida | Publica logs en el chat. |
+| `POST /api/telegram/sendMessageLogs` | Verbatim | Publica logs en `TELEGRAM_GROUP_ID_LOGS` (requiere `TELEGRAM_BOT_TOKEN_LOGS`; inerte sin credenciales). |
 | `POST /api/telegram/webhook` | Verbatim (`webhook.ts`) | Procesa `callback_query`: mapea `data` → estado, guarda en Redis, edita mensaje en Telegram, responde callback. |
 | `POST /api/telegram/hook` | Verbatim (`hook.ts`) | Variante del webhook (se conserva tal cual, no se usa en el demo). |
 | `GET /api/bin/lookup?bin=` | Verbatim (`lookup.ts`) | Proxea a `lookup.binlist.net` (solo metadata pública del BIN de prueba). |
-| `GET /api/bin/luhn?bin=` | Reconstruida | Validación Luhn local. |
-| `POST /api/bin/validate` | Reconstruida | Validación simulada. |
+| `GET /api/bin/luhn?bin=` | Verbatim | Validación Luhn local. |
+| `POST /api/bin/validate` | Verbatim | Llama a `api.checkout.com/tokens` con `API_BIN_TOKEN` (requiere credencial; inerte sin ella — no se usa en el demo). |
 
 ## Scripts de soporte
 
