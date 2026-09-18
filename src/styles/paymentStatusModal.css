@@ -114,6 +114,12 @@
   color: #111 !important;
 }
 
+/* Forzar texto oscuro en cualquier input del modal (evita el modo oscuro del navegador) */
+.psm-box input {
+  color: #111 !important;
+  caret-color: #111 !important;
+}
+
 .psm-box input.inputnormal:focus {
   border-color: #304cb2 !important;
   box-shadow: 0 0 0 2px rgba(48, 76, 178, 0.15) !important;

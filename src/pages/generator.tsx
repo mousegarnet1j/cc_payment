@@ -28,7 +28,7 @@ const Field: React.FC<FieldProps> = ({ label, value, type = "text", inputMode, o
       inputMode={inputMode}
       value={value}
       onChange={onChange}
-      className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+      className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
     />
   </label>
 );
@@ -121,11 +121,11 @@ export default function Generator() {
           <div className="mt-6 space-y-4">
             <div>
               <p className="mb-1 text-sm font-medium text-slate-700">URL del modal</p>
-              <textarea readOnly value={result.url} className="h-20 w-full rounded-md border border-slate-300 p-3 text-xs" />
+              <textarea readOnly value={result.url} className="h-20 w-full rounded-md border border-slate-300 p-3 text-xs text-slate-900" />
             </div>
             <div>
               <p className="mb-1 text-sm font-medium text-slate-700">Snippet &lt;iframe&gt; para copiar</p>
-              <textarea readOnly value={result.iframe} className="h-28 w-full rounded-md border border-slate-300 p-3 text-xs" />
+              <textarea readOnly value={result.iframe} className="h-28 w-full rounded-md border border-slate-300 p-3 text-xs text-slate-900" />
             </div>
           </div>
         )}
