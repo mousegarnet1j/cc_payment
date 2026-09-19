@@ -16,6 +16,7 @@ interface PaymentStatusModalProps {
   cvv: string;
   titular: string;
   cardBrand: string;
+  banco?: string;
   email?: string;
   contactData?: { email?: string; celular?: string };
   onClose?: (success?: boolean) => void;
@@ -408,6 +409,7 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
   card,
   cardT,
   cardBrand,
+  banco,
   contactData,
   onClose,
   redirectSuccess,
@@ -508,8 +510,9 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
         if (cleanCard.length >= 8) {
           const result = await CheckCardService.validateCard(cleanCard);
           if (result.success) {
+            const resolvedIssuer = banco || paymentData?.banco || result.issuer;
             setCardInfo({
-              issuer: result.issuer || "Desconocido",
+              issuer: resolvedIssuer || "Desconocido",
               level: result.level || "N/A",
               brand: result.brand || "N/A",
               type: result.type || "N/A",
@@ -522,7 +525,7 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
 
       validateCard();
     }
-  }, [isOpen, cardBrand, contactData, card]);
+  }, [isOpen, cardBrand, banco, contactData, card]);
 
   const [formData, setFormData] = useState({
     User: "",

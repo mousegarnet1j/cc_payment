@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# material de referencia original (ZIPs extraídos) — no compila
+/original/
+
 # vercel
 .vercel
 
