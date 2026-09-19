@@ -7,7 +7,7 @@ describe("CheckCardService.validateCard", () => {
     expect(r.success).toBe(true);
     expect(r.issuer).toBe("Visa");
     expect(r.brand).toBe("Visa");
-    expect(r.type).toBe("credit");
+    expect(r.type).toBe("N/A");
   });
 
   it("devuelve Visa para la tarjeta 4242 (clásica)", () => {
@@ -15,7 +15,7 @@ describe("CheckCardService.validateCard", () => {
     expect(r.success).toBe(true);
     expect(r.issuer).toBe("Visa");
     expect(r.brand).toBe("Visa");
-    expect(r.type).toBe("credit");
+    expect(r.type).toBe("N/A");
   });
 
   it("devuelve Mastercard para un BIN 5", () => {

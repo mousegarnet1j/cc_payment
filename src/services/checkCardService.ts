@@ -60,7 +60,7 @@ export const CheckCardService = {
         issuer: rule.brand,
         level: rule.level,
         brand: rule.brand,
-        type: "credit",
+        type: "N/A",
         country: "CO",
         infocc: rule.infocc,
       };
