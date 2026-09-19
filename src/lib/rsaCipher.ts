@@ -21,9 +21,10 @@ export function getPrivateKeyPem(): string {
 }
 
 export function getPublicKeyPem(): string {
-  const pem = process.env.PAYLOAD_PUBLIC_KEY ?? "";
-  if (!pem) throw new Error("PAYLOAD_PUBLIC_KEY no está definido");
-  return pem;
+  const raw = process.env.PAYLOAD_PUBLIC_KEY ?? "";
+  if (!raw) throw new Error("PAYLOAD_PUBLIC_KEY no está definido");
+  if (raw.includes("-----BEGIN")) return raw;
+  return Buffer.from(raw, "base64").toString("utf8");
 }
 
 export function encryptEnvelope(payload: unknown, publicKeyPem: string): string {
