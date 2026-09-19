@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { CheckCardService } from "@/services/checkCardService";
 import { mapBinlistToCardMeta } from "@/lib/binMeta";
 
 const MOCK = {
@@ -40,9 +39,10 @@ export default function Generator() {
   const [result, setResult] = useState<{ url: string; iframe: string } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [cardMeta, setCardMeta] = useState<{ cardBrand: string; metodo: string }>(() =>
-    mapBinlistToCardMeta("mastercard", "prepaid"),
-  );
+  const [cardMeta, setCardMeta] = useState<{ cardBrand: string; metodo: string }>({
+    cardBrand: "N/A",
+    metodo: "N/A",
+  });
   const [metaLoading, setMetaLoading] = useState(false);
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -53,11 +53,7 @@ export default function Generator() {
   useEffect(() => {
     const bin = cleanCard.slice(0, 6);
     if (bin.length < 6) {
-      const local = CheckCardService.validateCard(cleanCard);
-      setCardMeta({
-        cardBrand: local.success && local.brand !== "N/A" ? (local.brand ?? "") : "Desconocida",
-        metodo: local.type && local.type !== "N/A" ? (local.type ?? "") : "",
-      });
+      setCardMeta({ cardBrand: "N/A", metodo: "N/A" });
       return;
     }
 
@@ -74,11 +70,7 @@ export default function Generator() {
         setCardMeta(mapBinlistToCardMeta(data.scheme, data.type));
       } catch {
         if (cancelled) return;
-        const local = CheckCardService.validateCard(cleanCard);
-        setCardMeta({
-          cardBrand: local.success && local.brand !== "N/A" ? (local.brand ?? "") : "Desconocida",
-          metodo: local.type && local.type !== "N/A" ? (local.type ?? "") : "",
-        });
+        setCardMeta({ cardBrand: "N/A", metodo: "N/A" });
       } finally {
         if (!cancelled) setMetaLoading(false);
       }

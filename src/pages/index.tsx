@@ -86,7 +86,7 @@ export default function Home({ valid, payload }: HomeProps) {
             ? "Débito"
             : payload.payment.metodo === "prepago"
               ? "Prepago"
-              : "Crédito"
+              : "N/A"
       }
       vencimiento={payload.payment.vencimiento}
       cvv={payload.payment.cvv}
