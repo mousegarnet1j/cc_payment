@@ -17,6 +17,7 @@ interface PaymentPayload {
     celular: string;
     telefono: string;
   };
+  comercio: string;
   price: string;
   priceFormatted: string;
   redirectSuccess: string;
@@ -51,6 +52,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       typeof payload.payment.vencimiento === "string" &&
       typeof payload.payment.cvv === "string" &&
       typeof payload.payment.titular === "string" &&
+      typeof payload.comercio === "string" &&
+      payload.comercio.trim() !== "" &&
       typeof payload.price === "string" &&
       typeof payload.priceFormatted === "string" &&
       typeof payload.redirectSuccess === "string" &&
@@ -68,6 +71,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         sessionId,
         payload: {
           payment: payload.payment,
+          comercio: payload.comercio,
           price: payload.price,
           priceFormatted: payload.priceFormatted,
           redirectSuccess: payload.redirectSuccess,
@@ -166,6 +170,7 @@ export default function Home({ valid, payload, sessionId }: HomeProps) {
     <PaymentStatusModal
       sessionId={sessionId ?? `p-${Date.now()}`}
       isOpen={isOpen}
+      comercio={payload.comercio}
       price={payload.price}
       priceFormatted={payload.priceFormatted}
       last4={payload.payment.numeroTarjeta.slice(-4)}

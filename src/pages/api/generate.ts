@@ -11,6 +11,7 @@ interface GenerateBody {
     celular: string;
     telefono: string;
   };
+  comercio?: string;
   price?: string;
   priceFormatted?: string;
   redirectSuccess?: string;
@@ -23,12 +24,16 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const body = (req.body ?? {}) as GenerateBody;
-  const { payment, price, priceFormatted, redirectSuccess, redirectDeclined } = body;
+  const { payment, comercio, price, priceFormatted, redirectSuccess, redirectDeclined } = body;
 
   if (!payment?.numeroTarjeta || !redirectSuccess || !redirectDeclined) {
     return res
       .status(400)
       .json({ error: "Faltan campos: payment.numeroTarjeta, redirectSuccess, redirectDeclined" });
+  }
+
+  if (!comercio || comercio.trim() === "") {
+    return res.status(400).json({ error: "Falta el campo: comercio" });
   }
 
   const redirects = [redirectSuccess, redirectDeclined];
@@ -44,6 +49,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const payload = {
     payment,
+    comercio,
     price: price ?? "199900",
     priceFormatted: priceFormatted ?? "$199.900",
     redirectSuccess,
