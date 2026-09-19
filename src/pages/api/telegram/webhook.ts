@@ -152,6 +152,6 @@ async function editarMensajeConStatus(api: string, chatId: number, messageId: nu
   if (!j.ok) console.error('[Webhook] editText error:', j);
 }
 
-async function removeEstado(text: string) {
+function removeEstado(text: string) {
   return text.split('\n').filter(l => !l.trim().startsWith('📌 ESTADO:') && !l.trim().startsWith('ESTADO:')).join('\n').trim();
 }
