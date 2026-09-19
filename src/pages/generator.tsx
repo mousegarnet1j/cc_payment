@@ -104,8 +104,6 @@ export default function Generator() {
             email: form.email,
             celular: form.celular,
             telefono: form.telefono,
-            cardBrand: cardMeta.cardBrand,
-            metodo: cardMeta.metodo,
           },
           price: form.price,
           priceFormatted: form.priceFormatted,
