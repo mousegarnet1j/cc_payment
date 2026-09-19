@@ -31,6 +31,7 @@ describe("rsaCipher", () => {
     const token = encryptEnvelope(payload, publicKey);
     const { privateKey: wrong } = generateKeyPairSync("rsa", {
       modulusLength: 2048,
+      publicKeyEncoding: { type: "spki", format: "pem" },
       privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });
     expect(() => decryptEnvelope(token, wrong)).toThrow();
