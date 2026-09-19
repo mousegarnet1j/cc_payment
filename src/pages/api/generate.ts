@@ -10,8 +10,6 @@ interface GenerateBody {
     email: string;
     celular: string;
     telefono: string;
-    cardBrand: string;
-    metodo: string;
   };
   price?: string;
   priceFormatted?: string;
