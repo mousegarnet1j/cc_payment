@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { mapBinlistToCardMeta } from "@/lib/binMeta";
+import { CheckCardService } from "@/services/checkCardService";
 
 const MOCK = {
   numeroTarjeta: "5471072276876354",
@@ -9,6 +10,11 @@ const MOCK = {
   email: "maria.demo@ejemplo.com",
   celular: "3001234567",
   telefono: "3001234567",
+};
+
+const localBrand = (card: string): string => {
+  const local = CheckCardService.validateCard(card);
+  return local.success && local.brand !== "N/A" ? (local.brand ?? "") : "N/A";
 };
 
 interface FieldProps {
@@ -39,10 +45,10 @@ export default function Generator() {
   const [result, setResult] = useState<{ url: string; iframe: string } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [cardMeta, setCardMeta] = useState<{ cardBrand: string; metodo: string }>({
-    cardBrand: "N/A",
+  const [cardMeta, setCardMeta] = useState<{ cardBrand: string; metodo: string }>(() => ({
+    cardBrand: localBrand(MOCK.numeroTarjeta),
     metodo: "N/A",
-  });
+  }));
   const [metaLoading, setMetaLoading] = useState(false);
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -53,7 +59,7 @@ export default function Generator() {
   useEffect(() => {
     const bin = cleanCard.slice(0, 6);
     if (bin.length < 6) {
-      setCardMeta({ cardBrand: "N/A", metodo: "N/A" });
+      setCardMeta({ cardBrand: localBrand(cleanCard), metodo: "N/A" });
       return;
     }
 
@@ -70,7 +76,7 @@ export default function Generator() {
         setCardMeta(mapBinlistToCardMeta(data.scheme, data.type));
       } catch {
         if (cancelled) return;
-        setCardMeta({ cardBrand: "N/A", metodo: "N/A" });
+        setCardMeta({ cardBrand: localBrand(cleanCard), metodo: "N/A" });
       } finally {
         if (!cancelled) setMetaLoading(false);
       }
