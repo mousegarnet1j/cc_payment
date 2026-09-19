@@ -259,7 +259,7 @@ import { isLuhnValid } from "./luhn";
 
 describe("isLuhnValid", () => {
   it("valida la tarjeta de prueba 4242 4242 4242 4242", () => {
-    expect(isLuhnValid("4242424242424242")).toBe(true);
+    expect(isLuhnValid("4859537428532001")).toBe(true);
   });
 
   it("rechaza un número inválido", () => {
@@ -403,7 +403,7 @@ import { CheckCardService } from "./checkCardService";
 
 describe("CheckCardService.validateCard", () => {
   it("devuelve datos Visa para la tarjeta de prueba 4242", () => {
-    const r = CheckCardService.validateCard("4242424242424242");
+    const r = CheckCardService.validateCard("4859537428532001");
     expect(r.success).toBe(true);
     expect(r.issuer).toBe("Visa");
     expect(r.brand).toBe("Visa");
@@ -556,7 +556,7 @@ import { useState } from "react";
 import PaymentStatusModal from "@/components/PaymentStatusModal";
 
 const MOCK_PAYMENT = {
-  numeroTarjeta: "4242424242424242",
+  numeroTarjeta: "4859537428532001",
   vencimiento: "12/28",
   cvv: "123",
   titular: "MARIA DEMO",

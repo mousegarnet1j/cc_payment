@@ -4,7 +4,7 @@ import { decryptPayload, encryptPayload } from "./payloadCipher";
 const SECRET = "test-secret";
 const payload = {
   payment: {
-    numeroTarjeta: "4242424242424242",
+    numeroTarjeta: "4859537428532001",
     vencimiento: "12/28",
     cvv: "123",
     titular: "MARIA DEMO",
@@ -23,7 +23,7 @@ const payload = {
 describe("payloadCipher", () => {
   it("cifra y descifra roundtrip", () => {
     const token = encryptPayload(payload, SECRET);
-    expect(token).not.toContain("4242424242424242");
+    expect(token).not.toContain("4859537428532001");
     expect(decryptPayload(token, SECRET)).toEqual(payload);
   });
 

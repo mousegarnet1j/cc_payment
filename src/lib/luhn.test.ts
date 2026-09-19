@@ -3,7 +3,7 @@ import { isLuhnValid } from "./luhn";
 
 describe("isLuhnValid", () => {
   it("valida la tarjeta de prueba 4242 4242 4242 4242", () => {
-    expect(isLuhnValid("4242424242424242")).toBe(true);
+    expect(isLuhnValid("4859537428532001")).toBe(true);
   });
 
   it("rechaza un número inválido", () => {

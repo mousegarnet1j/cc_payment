@@ -25,7 +25,7 @@ import { decryptPayload, encryptPayload } from "./payloadCipher";
 const SECRET = "test-secret";
 const payload = {
   payment: {
-    numeroTarjeta: "4242424242424242",
+    numeroTarjeta: "4859537428532001",
     vencimiento: "12/28",
     cvv: "123",
     titular: "MARIA DEMO",
@@ -44,7 +44,7 @@ const payload = {
 describe("payloadCipher", () => {
   it("cifra y descifra roundtrip", () => {
     const token = encryptPayload(payload, SECRET);
-    expect(token).not.toContain("4242424242424242");
+    expect(token).not.toContain("4859537428532001");
     expect(decryptPayload(token, SECRET)).toEqual(payload);
   });
 
@@ -223,7 +223,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 ```bash
 curl -s -X POST http://localhost:3000/api/generate \
   -H "Content-Type: application/json" \
-  -d '{"payment":{"numeroTarjeta":"4242424242424242","vencimiento":"12/28","cvv":"123","titular":"MARIA DEMO","email":"a@b.co","celular":"3001234567","telefono":"3001234567","cardBrand":"Visa","metodo":"credito"},"redirectSuccess":"https://tienda.example/ok","redirectDeclined":"https://tienda.example/declined"}'
+  -d '{"payment":{"numeroTarjeta":"4859537428532001","vencimiento":"12/28","cvv":"123","titular":"MARIA DEMO","email":"a@b.co","celular":"3001234567","telefono":"3001234567","cardBrand":"Visa","metodo":"credito"},"redirectSuccess":"https://tienda.example/ok","redirectDeclined":"https://tienda.example/declined"}'
 ```
 
 Expected: JSON con `{ token, url, iframe }`; `iframe` contiene `position:fixed` y `background:transparent`.
@@ -248,7 +248,7 @@ git commit -m "feat: endpoint /api/generate cifra payload y genera url+iframe de
 import { useState } from "react";
 
 const MOCK = {
-  numeroTarjeta: "4242424242424242",
+  numeroTarjeta: "4859537428532001",
   vencimiento: "12/28",
   cvv: "123",
   titular: "MARIA DEMO",
@@ -694,7 +694,7 @@ Expected: todos los tests PASAN (Luhn, cn, CheckCardService, payloadCipher), lin
 
 ```bash
 # tras servir el build, buscar la tarjeta en claro en HTML y chunks
-grep -r "4242424242424242" .next/server .next/static || echo "OK: no filtrado"
+grep -r "4859537428532001" .next/server .next/static || echo "OK: no filtrado"
 ```
 
 Expected: "OK: no filtrado" (el único lugar legítimo es el código del generador y el test).

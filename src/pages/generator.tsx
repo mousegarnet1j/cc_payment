@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const MOCK = {
-  numeroTarjeta: "4242424242424242",
+  numeroTarjeta: "4859537428532001",
   vencimiento: "12/28",
   cvv: "123",
   titular: "MARIA DEMO",

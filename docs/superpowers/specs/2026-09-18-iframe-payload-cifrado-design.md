@@ -68,7 +68,7 @@ cc_payment/
 ```ts
 interface PayloadCifrado {
   payment: {
-    numeroTarjeta: string;   // "4242424242424242"
+    numeroTarjeta: string;   // "4859537428532001"
     vencimiento: string;     // "12/28"
     cvv: string;             // "123"
     titular: string;         // "MARIA DEMO"
@@ -239,7 +239,7 @@ es aceptable; el `generator.tsx` define su propio fondo en su contenedor.
    - Con Redis y webhook activos: flujo completo → "✅ Check" → redirige a `redirectSuccess`.
    - El botón "Use Another Card" (estado `new_card`) redirige a `redirectDeclined`.
 4. Verificar que los datos en claro no aparecen **en la URL ni en el bundle JS de la página del
-   iframe** (buscar `4242424242424242` en los chunks de `.next/static` que carga `/`; el chunk del
+   iframe** (buscar `4859537428532001` en los chunks de `.next/static` que carga `/`; el chunk del
    generador los contiene por diseño, al ser la herramienta del presentador).
 
 ## Fuera de alcance
