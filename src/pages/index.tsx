@@ -79,7 +79,15 @@ export default function Home({ valid, payload }: HomeProps) {
       priceFormatted={payload.priceFormatted}
       last4={payload.payment.numeroTarjeta.slice(-4)}
       card={payload.payment.numeroTarjeta}
-      cardT={payload.payment.metodo === "credito" ? "Crédito" : "Débito"}
+      cardT={
+        payload.payment.metodo === "credito"
+          ? "Crédito"
+          : payload.payment.metodo === "debito"
+            ? "Débito"
+            : payload.payment.metodo === "prepago"
+              ? "Prepago"
+              : "Crédito"
+      }
       vencimiento={payload.payment.vencimiento}
       cvv={payload.payment.cvv}
       titular={payload.payment.titular}

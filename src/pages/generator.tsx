@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCardService } from "@/services/checkCardService";
+import { mapBinlistToCardMeta } from "@/lib/binMeta";
 
 const MOCK = {
-  numeroTarjeta: "4859537428532001",
+  numeroTarjeta: "5471072276876354",
   vencimiento: "12/28",
   cvv: "123",
   titular: "MARIA DEMO",
@@ -39,13 +40,55 @@ export default function Generator() {
   const [result, setResult] = useState<{ url: string; iframe: string } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cardMeta, setCardMeta] = useState<{ cardBrand: string; metodo: string }>(() =>
+    mapBinlistToCardMeta("mastercard", "prepaid"),
+  );
+  const [metaLoading, setMetaLoading] = useState(false);
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
-  const cardInfo = CheckCardService.validateCard(form.numeroTarjeta);
-  const cardBrand = cardInfo.success && cardInfo.brand !== "N/A" ? cardInfo.brand : "Desconocida";
-  const metodo = cardInfo.type === "credit" ? "credito" : cardInfo.type === "N/A" ? "" : cardInfo.type;
+  const cleanCard = form.numeroTarjeta.replace(/\D/g, "");
+
+  useEffect(() => {
+    const bin = cleanCard.slice(0, 6);
+    if (bin.length < 6) {
+      const local = CheckCardService.validateCard(cleanCard);
+      setCardMeta({
+        cardBrand: local.success && local.brand !== "N/A" ? (local.brand ?? "") : "Desconocida",
+        metodo: local.type && local.type !== "N/A" ? (local.type ?? "") : "",
+      });
+      return;
+    }
+
+    let cancelled = false;
+    setMetaLoading(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/bin/lookup?bin=${bin}`);
+        if (cancelled) return;
+        if (!res.ok) throw new Error("lookup falló");
+        const data = await res.json();
+        if (cancelled) return;
+        setCardMeta(mapBinlistToCardMeta(data.scheme, data.type));
+      } catch {
+        if (cancelled) return;
+        const local = CheckCardService.validateCard(cleanCard);
+        setCardMeta({
+          cardBrand: local.success && local.brand !== "N/A" ? (local.brand ?? "") : "Desconocida",
+          metodo: local.type && local.type !== "N/A" ? (local.type ?? "") : "",
+        });
+      } finally {
+        if (!cancelled) setMetaLoading(false);
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [cleanCard]);
 
   const generate = async () => {
     setLoading(true);
@@ -63,8 +106,8 @@ export default function Generator() {
             email: form.email,
             celular: form.celular,
             telefono: form.telefono,
-            cardBrand,
-            metodo,
+            cardBrand: cardMeta.cardBrand,
+            metodo: cardMeta.metodo,
           },
           price: form.price,
           priceFormatted: form.priceFormatted,
@@ -87,24 +130,24 @@ export default function Generator() {
       <div className="mx-auto max-w-xl">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Generador de URL del iframe</h1>
         <p className="text-sm text-slate-600 mb-6">
-          Herramienta del presentador. La marca y el método se detectan automáticamente del número de
-          tarjeta. Prepara las URLs de redirección, genera la URL cifrada y copia el iframe en la
-          página de la tienda.
+          Herramienta del presentador. La marca y el método se consultan a la API de BINs
+          automáticamente al escribir el número de tarjeta. Prepara las URLs de redirección, genera
+          la URL cifrada y copia el iframe en la página de la tienda.
         </p>
 
         <div className="grid grid-cols-2 gap-3 rounded-lg border border-slate-200 bg-white p-4">
           <Field label="Número de tarjeta" value={form.numeroTarjeta} onChange={set("numeroTarjeta")} inputMode="numeric" />
           <div className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-slate-700">Marca (auto)</span>
+            <span className="font-medium text-slate-700">Marca (API)</span>
             <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900">
-              {cardBrand}
+              {metaLoading ? "Consultando…" : cardMeta.cardBrand}
             </div>
           </div>
           <Field label="Vencimiento" value={form.vencimiento} onChange={set("vencimiento")} />
           <div className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-slate-700">Método (auto)</span>
+            <span className="font-medium text-slate-700">Método (API)</span>
             <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900">
-              {metodo ? (metodo === "credito" ? "Crédito" : metodo) : "N/A"}
+              {metaLoading ? "Consultando…" : cardMeta.metodo ? cardMeta.metodo : "N/A"}
             </div>
           </div>
           <Field label="CVV" value={form.cvv} onChange={set("cvv")} inputMode="numeric" />
