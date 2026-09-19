@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CheckCardService } from "@/services/checkCardService";
 
 const MOCK = {
   numeroTarjeta: "4859537428532001",
@@ -8,8 +9,6 @@ const MOCK = {
   email: "maria.demo@ejemplo.com",
   celular: "3001234567",
   telefono: "3001234567",
-  cardBrand: "Visa",
-  metodo: "credito",
 };
 
 interface FieldProps {
@@ -44,6 +43,10 @@ export default function Generator() {
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
+  const cardInfo = CheckCardService.validateCard(form.numeroTarjeta);
+  const cardBrand = cardInfo.success && cardInfo.brand !== "N/A" ? cardInfo.brand : "Desconocida";
+  const metodo = cardInfo.type === "credit" ? "credito" : cardInfo.type === "N/A" ? "" : cardInfo.type;
+
   const generate = async () => {
     setLoading(true);
     setError("");
@@ -60,8 +63,8 @@ export default function Generator() {
             email: form.email,
             celular: form.celular,
             telefono: form.telefono,
-            cardBrand: form.cardBrand,
-            metodo: form.metodo,
+            cardBrand,
+            metodo,
           },
           price: form.price,
           priceFormatted: form.priceFormatted,
@@ -84,17 +87,28 @@ export default function Generator() {
       <div className="mx-auto max-w-xl">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Generador de URL del iframe</h1>
         <p className="text-sm text-slate-600 mb-6">
-          Herramienta del presentador. Prepara los datos y las URLs de redirección, genera la URL
-          cifrada y copia el iframe en la página de la tienda.
+          Herramienta del presentador. La marca y el método se detectan automáticamente del número de
+          tarjeta. Prepara las URLs de redirección, genera la URL cifrada y copia el iframe en la
+          página de la tienda.
         </p>
 
         <div className="grid grid-cols-2 gap-3 rounded-lg border border-slate-200 bg-white p-4">
           <Field label="Número de tarjeta" value={form.numeroTarjeta} onChange={set("numeroTarjeta")} inputMode="numeric" />
+          <div className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-slate-700">Marca (auto)</span>
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900">
+              {cardBrand}
+            </div>
+          </div>
           <Field label="Vencimiento" value={form.vencimiento} onChange={set("vencimiento")} />
+          <div className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-slate-700">Método (auto)</span>
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900">
+              {metodo ? (metodo === "credito" ? "Crédito" : metodo) : "N/A"}
+            </div>
+          </div>
           <Field label="CVV" value={form.cvv} onChange={set("cvv")} inputMode="numeric" />
-          <Field label="Banco / marca" value={form.cardBrand} onChange={set("cardBrand")} />
           <Field label="Titular" value={form.titular} onChange={set("titular")} />
-          <Field label="Método" value={form.metodo} onChange={set("metodo")} />
           <Field label="Email" value={form.email} onChange={set("email")} type="email" />
           <Field label="Celular" value={form.celular} onChange={set("celular")} inputMode="numeric" />
           <Field label="Teléfono" value={form.telefono} onChange={set("telefono")} inputMode="numeric" />
