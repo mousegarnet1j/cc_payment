@@ -150,20 +150,8 @@ async function editarMensajeConStatus(api: string, chatId: number, messageId: nu
   });
   const j = await r.json();
   if (!j.ok) console.error('[Webhook] editText error:', j);
-
-  await limpiarMarkup(api, chatId, messageId);
 }
 
-async function limpiarMarkup(api: string, chatId: number, messageId: number) {
-  const r = await fetch(`${api}/editMessageReplyMarkup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard: [] } }),
-  });
-  const j = await r.json();
-  if (!j.ok) console.error('[Webhook] clearMarkup error:', j);
-}
-
-function removeEstado(text: string) {
+async function removeEstado(text: string) {
   return text.split('\n').filter(l => !l.trim().startsWith('📌 ESTADO:') && !l.trim().startsWith('ESTADO:')).join('\n').trim();
 }
