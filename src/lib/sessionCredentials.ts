@@ -1,7 +1,12 @@
+import { createHash } from "crypto";
 import redis from "@/lib/redis";
 
 const TTL_SECONDS = 30 * 60;
 const PREFIX = "session-creds:";
+
+export function sessionIdFromToken(token: string): string {
+  return `p-${createHash("sha256").update(token).digest("hex").slice(0, 16)}`;
+}
 
 export interface SessionCredentials {
   botToken: string;

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { randomUUID } from "crypto";
 import type { GetServerSideProps } from "next";
 import PaymentStatusModal from "@/components/PaymentStatusModal";
 import { decryptEnvelope, getPrivateKeyPem } from "@/lib/rsaCipher";
-import { saveSessionCredentials } from "@/lib/sessionCredentials";
+import { saveSessionCredentials, sessionIdFromToken } from "@/lib/sessionCredentials";
 import { CheckCardService } from "@/services/checkCardService";
 import { mapBankName, mapCardMeta } from "@/lib/binMeta";
 import { validateBin } from "@/services/bin/validate";
@@ -61,7 +60,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     if (!isWellFormed) {
       return { props: { valid: false } };
     }
-    const sessionId = payload.sessionId ?? `p-${randomUUID()}`;
+    const sessionId = payload.sessionId ?? sessionIdFromToken(token);
     await saveSessionCredentials(sessionId, payload.telegram);
     return {
       props: {

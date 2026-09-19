@@ -199,6 +199,15 @@ export default function Info({ publicKey, publicKeyUrl }: InfoProps) {
             (verificación real con <code className="rounded bg-slate-200 px-1">getWebhookInfo</code>:
             si ya apunta a este servidor se reutiliza; si no, se crea).
           </p>
+          <p className="text-sm text-slate-600 mt-2">
+            <strong>Sesión por usuario:</strong> cada token genera un <code className="rounded bg-slate-200 px-1">sessionId</code>{" "}
+            único y consistente durante todo el proceso (recargar el iframe reutiliza la misma sesión).
+            Puedes sobreescribirlo con <code className="rounded bg-slate-200 px-1">sessionId</code> propio en el payload.
+          </p>
+          <p className="text-sm text-slate-600 mt-2">
+            <strong>Anti-spam:</strong> el mensaje inicial se envía una sola vez por sesión, con rate
+            limit por chat (8 msg/60s) y por sesión (30 msg/h).
+          </p>
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-4 mb-4">
