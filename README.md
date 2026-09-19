@@ -50,7 +50,11 @@ cifrado en la URL (`?d=<token>`) y se descifra **solo server-side**.
 - **Este servidor** descifra con la clave privada, guarda `sessionId → {botToken, chatId}` en Redis
   (TTL 30 min) y nunca expone las credenciales al navegador.
 - **Webhook por página**: cada bot usa su propio `setWebhook` (auto-registrado la primera vez,
-  con dedup en Redis). El handler resuelve el bot por el `Session ID` del mensaje.
+  con verificación real vía `getWebhookInfo` y cache en Redis). El handler resuelve el bot por el
+  `Session ID` del mensaje.
+- **Responsabilidad del cierre**: el bot pertenece al cliente (página B), así que **ellos** cierran
+  su webhook cuando terminan (`deleteWebhook` con su token). Un webhook sin uso apuntando aquí es
+  inofensivo; las sesiones expiran solas (30 min).
 
 Guía completa para el desarrollador de página B (pasos, payload, ejemplos Node.js y Web Crypto y la
 clave pública): **`/info`**.

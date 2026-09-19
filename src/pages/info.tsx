@@ -195,7 +195,28 @@ export default function Info({ publicKey, publicKeyUrl }: InfoProps) {
   style="position:fixed;inset:0;width:100vw;height:100vh;border:0;background:transparent;z-index:9999"></iframe>`}
           </pre>
           <p className="text-sm text-slate-600 mt-2">
-            El webhook del bot se registra automáticamente la primera vez que se envía un mensaje.
+            El webhook del bot se registra automáticamente la primera vez que se envía un mensaje
+            (verificación real con <code className="rounded bg-slate-200 px-1">getWebhookInfo</code>:
+            si ya apunta a este servidor se reutiliza; si no, se crea).
+          </p>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-4 mb-4">
+          <h2 className="text-lg font-semibold text-slate-900 mb-2">
+            Paso 5 — Cierre del webhook (responsabilidad del cliente)
+          </h2>
+          <p className="text-sm text-slate-600 mb-2">
+            El bot es <strong>suyo</strong>, por lo que cerrar su webhook es su responsabilidad.
+            Puede hacerlo en cualquier momento llamando <code className="rounded bg-slate-200 px-1">deleteWebhook</code>{" "}
+            con su propio token:
+          </p>
+          <pre className="rounded-md bg-slate-900 p-3 text-xs text-slate-100 overflow-x-auto">
+            {`curl "https://api.telegram.org/bot<SU_TOKEN>/deleteWebhook"`}
+          </pre>
+          <p className="text-sm text-slate-600 mt-2">
+            Un webhook que quede apuntando a este servidor sin uso es inofensivo: los callbacks de
+            sesiones no activas se ignoran. Si el cliente lo cierra y luego una sesión activa envía
+            otro mensaje, este servidor lo vuelve a registrar automáticamente.
           </p>
         </section>
       </div>
