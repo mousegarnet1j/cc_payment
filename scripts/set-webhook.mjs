@@ -15,9 +15,12 @@ function loadEnv() {
   return env;
 }
 
-const token = process.env.TELEGRAM_BOT_TOKEN || loadEnv().TELEGRAM_BOT_TOKEN;
+const tokenArg = process.argv.find((a) => a.startsWith("--token="));
+const token = tokenArg
+  ? tokenArg.split("=")[1]
+  : process.env.TELEGRAM_BOT_TOKEN || loadEnv().TELEGRAM_BOT_TOKEN;
 if (!token) {
-  console.error("Falta TELEGRAM_BOT_TOKEN en .env.local");
+  console.error("Pasa el token: npm run set-webhook -- <url> --token=<BOT_TOKEN>");
   process.exit(1);
 }
 
