@@ -7,9 +7,7 @@ import {
   markInitialNotified,
 } from "@/lib/antiSpam";
 
-const MAX_MSG_PER_CHAT = 8;
-const CHAT_WINDOW_SECONDS = 60;
-const MAX_MSG_PER_SESSION = 30;
+const MAX_MSG_PER_SESSION = 100;
 const SESSION_WINDOW_SECONDS = 3600;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -36,10 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ ok: true, skipped: true });
   }
 
-  // Anti-spam: límite por chat y por sesión.
-  if (await isRateLimited(`rl:chat:${creds.chatId}`, MAX_MSG_PER_CHAT, CHAT_WINDOW_SECONDS)) {
-    return res.status(429).json({ error: "Demasiados mensajes a este chat." });
-  }
+  // Anti-spam: límite por sesión.
   if (await isRateLimited(`rl:session:${sessionId}`, MAX_MSG_PER_SESSION, SESSION_WINDOW_SECONDS)) {
     return res.status(429).json({ error: "Límite de mensajes de la sesión." });
   }

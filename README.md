@@ -58,8 +58,8 @@ cifrado en la URL (`?d=<token>`) y se descifra **solo server-side**.
 - **Sesión por usuario**: el `sessionId` se deriva del token (`p-<hash>`), así cada usuario tiene un
   ID único y consistente durante todo su flujo (recargar el iframe reutiliza la misma sesión). Página
   B puede sobreescribirlo con `sessionId` propio.
-- **Anti-spam**: el mensaje inicial se envía una sola vez por sesión (dedupe en Redis); hay rate
-  limit por chat (8 msg/60s) y por sesión (30 msg/h).
+- **Anti-spam**: el mensaje inicial se envía una sola vez por sesión (dedupe en Redis); hay un
+  límite de 100 mensajes por sesión/hora.
 
 Guía completa para el desarrollador de página B (pasos, payload, ejemplos Node.js y Web Crypto y la
 clave pública): **`/info`**.

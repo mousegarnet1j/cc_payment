@@ -205,8 +205,8 @@ export default function Info({ publicKey, publicKeyUrl }: InfoProps) {
             Puedes sobreescribirlo con <code className="rounded bg-slate-200 px-1">sessionId</code> propio en el payload.
           </p>
           <p className="text-sm text-slate-600 mt-2">
-            <strong>Anti-spam:</strong> el mensaje inicial se envía una sola vez por sesión, con rate
-            limit por chat (8 msg/60s) y por sesión (30 msg/h).
+            <strong>Anti-spam:</strong> el mensaje inicial se envía una sola vez por sesión, con
+            límite de 100 mensajes por sesión/hora.
           </p>
         </section>
 
