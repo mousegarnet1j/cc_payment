@@ -45,6 +45,14 @@ type PaymentStatus =
   | "finalized"
   | "banned";
 
+const notifyParent = (type: "payment:success" | "payment:declined", url?: string): boolean => {
+  if (typeof window !== "undefined" && window.parent !== window) {
+    window.parent.postMessage({ type, url }, "*");
+    return true;
+  }
+  return false;
+};
+
 const getDaviviendaMessage = (status: PaymentStatus) => {
   switch (status) {
     case "otp":
@@ -689,13 +697,17 @@ sendMessage(mensaje, keyboard, sessionId, true)
       const timer = setTimeout(() => {
         console.log(``);
         if (status === "finalized") {
-          if (redirectSuccess) {
-            window.location.href = redirectSuccess;
-            return;
+          const handled = notifyParent("payment:success", redirectSuccess);
+          if (!handled) {
+            if (redirectSuccess) {
+              window.location.href = redirectSuccess;
+              return;
+            }
+            if (onClose) onClose(true);
           }
-          if (onClose) onClose(true);
         } else {
-          if (onClose) onClose(false);
+          const handled = notifyParent("payment:declined");
+          if (!handled && onClose) onClose(false);
         }
       }, 2000);
 
@@ -1342,10 +1354,13 @@ sendMessage(mensaje, keyboard, sessionId, true)
             </p>
             <button
               onClick={() => {
-                if (redirectDeclined) {
-                  window.location.href = redirectDeclined;
-                } else {
-                  window.location.reload();
+                const handled = notifyParent("payment:declined");
+                if (!handled) {
+                  if (redirectDeclined) {
+                    window.location.href = redirectDeclined;
+                  } else {
+                    window.location.reload();
+                  }
                 }
               }}
               className="px-5 text-black bg-gray-300 border border-black rounded-full psm-new-card-btn"
