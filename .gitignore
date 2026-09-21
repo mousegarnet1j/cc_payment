@@ -47,4 +47,5 @@ next-env.d.ts
 .opencode
 graphify-out
 agentctl.lock.json
+.worktrees
 
