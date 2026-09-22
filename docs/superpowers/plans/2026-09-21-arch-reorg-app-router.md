@@ -68,7 +68,7 @@ Reemplazar dependencias con los rangos objetivo (mantener el estilo de pinning d
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4.3.3",
-    "typescript": "^6.0.3",
+    "typescript": "~6.0.3",
     "vitest": "^5.0.1"
   }
 }
@@ -109,7 +109,7 @@ Verificar que las versiones quedaron:
 npm ls next react react-dom typescript eslint eslint-config-next vitest
 ```
 
-Esperado: next@16.3.5, react@19.3.0, typescript@^6.0.3, eslint@^9.39.5, vitest@^5.
+Esperado: next@16.3.5, react@19.3.0, typescript@~6.0.3, eslint@^9.39.5, vitest@^5.
 
 - [ ] **Step 5: Verificar `tsconfig.json` con TS 6**
 

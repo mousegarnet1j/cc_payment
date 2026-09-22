@@ -145,7 +145,7 @@ sobre Pages Router **antes** de migrar (aisla el riesgo: versiones primero, rout
 | next | 15.5.25 | 16.3.5 | LTS activa; App Router con React 19.2+ |
 | react / react-dom | 19.1.0 | 19.3.0 | Requisito de Next 16 (React 19.2+) |
 | @types/react / @types/react-dom | ^19 | 19.3.0 | Alineados a React 19.3 |
-| typescript | ^5 | 6.0.3 | **No TS 7**: `typescript-eslint@8.70` exige `<6.1.0` |
+| typescript | ^5 | 6.0.3 (~6.0.3) | **No TS 7**: `typescript-eslint@8.70` exige `<6.1.0` |
 | eslint | ^9 | 9.39.5 (LTS) | ⚠️ **No ESLint 10**: `eslint-plugin-react@7.37.5` (bundled con eslint-config-next@16) rompe con ESLint 10 (`context.getFilename is not a function`). ESLint 9 es la línea LTS soportada |
 | eslint-config-next | 15.5.25 | 16.3.5 | Alineado a Next 16; exporta flat configs nativos; peer `eslint >=9` |
 | vitest | ^4.1.11 | 5.0.1 | Estable; peer `@types/node ^22` |
