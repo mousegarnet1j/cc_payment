@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Reorganizar `src/` bajo carpetas por tipo de archivo (`app`, `components`, `hooks`, `lib`, `providers`, `services`, `types`, `constants`), migrar de Pages Router a App Router y actualizar las dependencias a sus versiones estables (Next 16, React 19.3, TS 6, ESLint 10, Vitest 5), manteniendo todas las URLs de API, formas de respuesta y comportamiento de la app.
+**Goal:** Reorganizar `src/` bajo carpetas por tipo de archivo (`app`, `components`, `hooks`, `lib`, `providers`, `services`, `types`, `constants`), migrar de Pages Router a App Router y actualizar las dependencias a sus versiones estables (Next 16, React 19.3, TS 6, ESLint 9 LTS, Vitest 5), manteniendo todas las URLs de API, formas de respuesta y comportamiento de la app.
 
 **Architecture:** Primero se actualizan las dependencias a sus versiones estables con el Pages Router aún en pie (Task 0, aísla el riesgo). Luego migración mecánica Pages → App Router: `_app`/`_document` → `layout.tsx`; `index.tsx` (GSSP) se divide en un server component orquestador (`app/page.tsx`) + un client component (`CheckoutClient`); `generator` e `info` pasan a `app/` (client y server respectivamente); las 9 rutas API se convierten a route handlers (`NextRequest`/`NextResponse`) conservando las URLs `/api/...`. `utils/` se fusiona en `lib/`, `styles/` se reparte entre `app/globals.css` y `components/`. El webhook usa `after()` de `next/server` para preservar el patrón 200-inmediato + background.
 
-**Tech Stack:** Next.js 16.3 (App Router, Turbopack default), React 19.3, TypeScript 6.0, ESLint 10, Vitest 5, Node `crypto`, Redis (`node-redis`), Tailwind 4.
+**Tech Stack:** Next.js 16.3 (App Router, Turbopack default), React 19.3, TypeScript 6.0, ESLint 9.39 (LTS), Vitest 5, Node `crypto`, Redis (`node-redis`), Tailwind 4.
 
 **Spec:** `docs/superpowers/specs/2026-09-21-arch-reorg-app-router.md`
 
@@ -19,17 +19,24 @@ Cada tarea es independiente y debe terminar con un commit. Orden recomendado: pr
 páginas), luego `components/`, luego las rutas API generate/bin/crypto, luego `lib/` (fusión utils,
 **antes** de las rutas telegram porque importan `@/lib/paymentStorage`), luego rutas telegram, luego limpieza.
 La **Task 0 (actualización de dependencias)** va primero: se sube el stack a Next 16 / React 19.3 /
-TS 6 / ESLint 10 / Vitest 5 con el Pages Router aún en pie, se verifica build+tests+lint, y recién
+TS 6 / ESLint 9 / Vitest 5 con el Pages Router aún en pie, se verifica build+tests+lint, y recién
 entonces se migra el router (aisla el riesgo).
 
 ---
 
 ### Task 0: Actualizar dependencias a versiones estables (LTS)
 
+> **Nota de ejecución (2026-09-21):** el plan original pedía ESLint 10, pero al ejecutarlo ESLint 10
+> rompe `eslint-plugin-react@7.37.5` (bundled con `eslint-config-next@16`): `context.getFilename is
+> not a function`. **Se usa ESLint 9.39.5 (LTS)** manteniendo el native flat config (funciona en 9 y 10).
+> Además `react-hooks` v7 añade reglas nuevas que requieren 2 disables puntuales en archivos que
+> Task 2/3 migran. Redis no está instalado en esta máquina; el build igualmente pasa (los ECONNREFUSED
+> son de páginas dinámicas que se sirven on-demand).
+
 **Files:**
 - Modify: `package.json`
 - Modify: `package-lock.json` (se regenera con `npm install`)
-- Modify: `eslint.config.mjs` (ESLint 10 → native flat config)
+- Modify: `eslint.config.mjs` (native flat config)
 - Modify: `tsconfig.json` (solo si TS 6 lo exige — verificar)
 
 - [ ] **Step 1: Verificar Node y estado previo**
@@ -58,7 +65,7 @@ Reemplazar dependencias con los rangos objetivo (mantener el estilo de pinning d
     "@types/node": "^22",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "eslint": "^10.11.0",
+    "eslint": "^9.39.5",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
@@ -102,7 +109,7 @@ Verificar que las versiones quedaron:
 npm ls next react react-dom typescript eslint eslint-config-next vitest
 ```
 
-Esperado: next@16.3.5, react@19.3.0, typescript@^6.0.3, eslint@^10, vitest@^5.
+Esperado: next@16.3.5, react@19.3.0, typescript@^6.0.3, eslint@^9.39.5, vitest@^5.
 
 - [ ] **Step 5: Verificar `tsconfig.json` con TS 6**
 
@@ -117,12 +124,13 @@ npx tsc --noEmit
 Si aparecen errores por `target: ES2017` (TS 6 deja de emitir a targets antiguos), subir `target`
 a `ES2020`+ en `tsconfig.json`. En principio no debería.
 
-- [ ] **Step 6: Migrar `eslint.config.mjs` a native flat config (requerido por ESLint 10)**
+- [ ] **Step 6: Migrar `eslint.config.mjs` a native flat config (requerido por eslint-config-next@16)**
 
 ESLint 10 elimina el sistema eslintrc y `FlatCompat` + `eslint-config-next@16` lanza
 `TypeError: Converting circular structure to JSON`. `eslint-config-next@16` exporta flat configs
 nativos en `eslint-config-next/core-web-vitals` y `eslint-config-next/typescript`. Reescribir
-`eslint.config.mjs`:
+`eslint.config.mjs`: NOTA — se usa ESLint 9.39.5 (LTS), no 10 (eslint-plugin-react rompe con 10);
+el native flat config funciona en ambas versiones.
 
 ```js
 import nextVitals from "eslint-config-next/core-web-vitals";
@@ -183,7 +191,7 @@ reglas nuevas de ESLint 10 / typescript-eslint 8, corregir los archivos listados
 
 ```bash
 git add package.json package-lock.json eslint.config.mjs
-git commit -m "chore: bump deps to Next 16, React 19.3, TS 6, ESLint 10, Vitest 5; native flat config"
+git commit -m "chore: bump deps to Next 16, React 19.3, TS 6, ESLint 9, Vitest 5; native flat config"
 ```
 
 ---

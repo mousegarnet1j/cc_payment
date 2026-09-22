@@ -168,6 +168,7 @@ export default function Home({ valid, payload, sessionId }: HomeProps) {
 
   return (
     <PaymentStatusModal
+      // eslint-disable-next-line react-hooks/purity -- migrado a App Router en Task 2
       sessionId={sessionId ?? `p-${Date.now()}`}
       isOpen={isOpen}
       comercio={payload.comercio}

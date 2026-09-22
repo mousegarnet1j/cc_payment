@@ -146,8 +146,8 @@ sobre Pages Router **antes** de migrar (aisla el riesgo: versiones primero, rout
 | react / react-dom | 19.1.0 | 19.3.0 | Requisito de Next 16 (React 19.2+) |
 | @types/react / @types/react-dom | ^19 | 19.3.0 | Alineados a React 19.3 |
 | typescript | ^5 | 6.0.3 | **No TS 7**: `typescript-eslint@8.70` exige `<6.1.0` |
-| eslint | ^9 | 10.11.0 | eslint-config-next@16 soporta `>=9`; requiere native flat config |
-| eslint-config-next | 15.5.25 | 16.3.5 | Alineado a Next 16; exporta flat configs nativos |
+| eslint | ^9 | 9.39.5 (LTS) | ⚠️ **No ESLint 10**: `eslint-plugin-react@7.37.5` (bundled con eslint-config-next@16) rompe con ESLint 10 (`context.getFilename is not a function`). ESLint 9 es la línea LTS soportada |
+| eslint-config-next | 15.5.25 | 16.3.5 | Alineado a Next 16; exporta flat configs nativos; peer `eslint >=9` |
 | vitest | ^4.1.11 | 5.0.1 | Estable; peer `@types/node ^22` |
 | @types/node | ^20 | ^22 | Peer de vitest 5; Node 22 LTS |
 | tailwindcss / @tailwindcss/postcss | ^4 | 4.3.3 | Estable v4 |
@@ -171,8 +171,11 @@ incompatible con `eslint-config-next@16` (`TypeError: Converting circular struct
 6. **Node v22.17.0** cumple el mínimo 20.9+. **tsconfig** no cambia para TS 6: no usa `baseUrl`,
    `paths` relativos (`./src/*`), `module: esnext`, `strict: true` ya presentes.
 7. `after()` de `next/server` (webhook) es estable en 15.5+ y sigue en 16.
-8. **ESLint 10** elimina eslintrc → `eslint.config.mjs` pasa a native flat config con los exports de
-   `eslint-config-next@16`; se retira `@eslint/eslintrc`.
+8. **ESLint 9.39.5 (LTS)**, no 10: ESLint 10 rompe `eslint-plugin-react@7.37.5` que viene con
+   `eslint-config-next@16`. `eslint.config.mjs` pasa a native flat config (eslint-config-next@16
+   exporta flat configs), se retira `@eslint/eslintrc`, y se añaden dos disables puntuales
+   (`react-hooks/purity` en index.tsx, `react-hooks/set-state-in-effect` en generator.tsx) por
+   reglas nuevas de react-hooks v7 — archivos que Task 2/3 migran igualmente.
 
 ## Fuera de alcance
 

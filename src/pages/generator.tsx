@@ -63,6 +63,7 @@ export default function Generator() {
   useEffect(() => {
     const bin = cleanCard.slice(0, 6);
     if (bin.length < 6) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- migrado a App Router en Task 3
       setCardMeta(localMeta(cleanCard));
       return;
     }
