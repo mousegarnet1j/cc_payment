@@ -4,6 +4,7 @@ import { CheckCardService } from "../services/checkCardService";
 import Image from "next/image";
 import { savePaymentStateService } from "../services/telegram/savePaymentState";
 import { comercioCorto } from "../lib/comercio";
+import "./paymentStatusModal.css";
 
 interface PaymentStatusModalProps {
   sessionId: string;
