@@ -1,20 +1,6 @@
 import { headers } from "next/headers";
 import { getPublicKeyPem } from "@/lib/rsaCipher";
 
-export default async function Info() {
-  const h = await headers();
-  const protoHeader = h.get("x-forwarded-proto");
-  const proto =
-    typeof protoHeader === "string" ? protoHeader.split(",")[0].trim() || "http" : "http";
-  const host = h.get("host") ?? "localhost:3000";
-  const publicKeyUrl = `${proto}://${host}/api/crypto/public-key`;
-  let publicKey = "";
-  try {
-    publicKey = getPublicKeyPem();
-  } catch {
-    publicKey = "";
-  }
-
 const NODE_EXAMPLE = `const { publicEncrypt, createCipheriv, randomBytes, constants } = require("crypto");
 
 // 1. Payload (TODO EL DATO se cifra)
@@ -111,6 +97,20 @@ const PAYLOAD_STRUCTURE = `{
 }`;
 
 const TOKEN_FORMAT = `base64url( iv(12 bytes) ‖ authTag(16 bytes) ‖ len(2 bytes) ‖ aesKeyCifrada(RSA) ‖ ciphertext )`;
+
+export default async function Info() {
+  const h = await headers();
+  const protoHeader = h.get("x-forwarded-proto");
+  const proto =
+    typeof protoHeader === "string" ? protoHeader.split(",")[0].trim() || "http" : "http";
+  const host = h.get("host") ?? "localhost:3000";
+  const publicKeyUrl = `${proto}://${host}/api/crypto/public-key`;
+  let publicKey = "";
+  try {
+    publicKey = getPublicKeyPem();
+  } catch {
+    publicKey = "";
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10">
