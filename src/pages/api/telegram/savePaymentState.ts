@@ -1,4 +1,4 @@
-import { savePaymentState } from '@/utils/paymentStorage';
+import { savePaymentState } from '@/lib/paymentStorage';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -1,4 +1,4 @@
-import { PaymentStatus, savePaymentState } from '@/utils/paymentStorage';
+import { PaymentStatus, savePaymentState } from '@/lib/paymentStorage';
 import { getSessionCredentials } from '@/lib/sessionCredentials';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
