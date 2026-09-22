@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import CheckoutClient, { CheckoutPayload } from "@/components/CheckoutClient";
+import CheckoutClient from "@/components/CheckoutClient";
+import type { CheckoutPayload } from "@/components/CheckoutClient";
 import { decryptEnvelope, getPrivateKeyPem } from "@/lib/rsaCipher";
 import { saveSessionCredentials, sessionIdFromToken } from "@/lib/sessionCredentials";
 
