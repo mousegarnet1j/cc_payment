@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Límite de mensajes de la sesión." }, { status: 429 });
   }
 
-  await ensureWebhook(creds.botToken);
+  const webhookResult = await ensureWebhook(creds.botToken);
+  if (!webhookResult.ok) {
+    console.error("[Telegram] ensureWebhook:", webhookResult.error);
+  }
 
   const payload: Record<string, unknown> = {
     chat_id: creds.chatId,

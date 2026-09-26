@@ -49,3 +49,4 @@ graphify-out
 agentctl.lock.json
 .worktrees
 
+.codegraph

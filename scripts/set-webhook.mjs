@@ -1,3 +1,4 @@
+import { createClient } from "redis";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -29,10 +30,32 @@ const urlArg = process.argv.find((a) => a.startsWith("http"));
 
 const api = `https://api.telegram.org/bot${token}`;
 
+async function clearRedisCache() {
+  const redisUrl = process.env.REDIS_URL || loadEnv().REDIS_URL;
+  if (!redisUrl) {
+    console.warn("REDIS_URL no definido, no se limpia la cache de webhook");
+    return;
+  }
+  const client = createClient({ url: redisUrl });
+  await client.connect();
+  try {
+    const key = `webhook-registered:${token}`;
+    await client.del(key);
+    console.log(`cache ${key} eliminada`);
+  } finally {
+    await client.quit();
+  }
+}
+
 if (clear) {
   const res = await fetch(`${api}/deleteWebhook`);
   const json = await res.json();
   console.log("deleteWebhook:", json);
+  try {
+    await clearRedisCache();
+  } catch (error) {
+    console.warn("No se pudo limpiar la cache Redis:", error);
+  }
   process.exit(0);
 }
 
